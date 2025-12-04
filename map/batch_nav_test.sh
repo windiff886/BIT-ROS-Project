@@ -13,7 +13,7 @@
 #   MAP_FILE           地图文件
 #   HEADLESS           1 无头模式（推荐批量测试时使用）
 #   RUN_RVIZ           0 不启动 RViz（推荐批量测试时使用）
-#   TIMEOUT_PER_TEST   每个测试的超时时间（秒），默认 300
+#   WAYPOINT_TIMEOUT   每个 waypoint 的超时时间（秒），默认 120
 #   PAUSE_BETWEEN      测试间隔时间（秒），默认 10
 #   SKIP_EXISTING      1 跳过已存在结果的测试，默认 0
 # ============================================================
@@ -26,14 +26,50 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # 批量测试中断时的清理函数
 batch_cleanup() {
   echo ""
-  echo "[batch] 收到中断信号，正在清理..."
+  echo "[batch] 收到中断信号，正在清理所有进程..."
   set +e
+  
+  # 终止子脚本
+  pkill -f "launch_tiago_test" 2>/dev/null || true
+  
+  # 终止 Gazebo/Ignition 相关进程
+  pkill -f "ign gazebo" 2>/dev/null || true
   pkill -f "gz sim" 2>/dev/null || true
   pkill -f "gzserver" 2>/dev/null || true
+  pkill -f "gzclient" 2>/dev/null || true
+  pkill -f "ruby.*gz" 2>/dev/null || true
+  
+  # 终止 ROS2 导航相关进程
   pkill -f "nav2" 2>/dev/null || true
+  pkill -f "bt_navigator" 2>/dev/null || true
+  pkill -f "controller_server" 2>/dev/null || true
+  pkill -f "planner_server" 2>/dev/null || true
+  pkill -f "behavior_server" 2>/dev/null || true
+  pkill -f "amcl" 2>/dev/null || true
+  pkill -f "map_server" 2>/dev/null || true
+  pkill -f "lifecycle_manager" 2>/dev/null || true
+  pkill -f "component_container" 2>/dev/null || true
+  
+  # 终止可视化和桥接
   pkill -f "rviz2" 2>/dev/null || true
   pkill -f "parameter_bridge" 2>/dev/null || true
-  echo "[batch] 已中断。"
+  pkill -f "robot_state_publisher" 2>/dev/null || true
+  pkill -f "static_transform_publisher" 2>/dev/null || true
+  
+  # 终止测试和辅助脚本
+  pkill -f "nav_performance_test" 2>/dev/null || true
+  pkill -f "odom_to_tf" 2>/dev/null || true
+  pkill -f "laser_frame_remapper" 2>/dev/null || true
+  
+  # 等待进程退出
+  sleep 2
+  
+  # 强制杀死残留的 Gazebo 进程
+  pkill -9 -f "ign gazebo" 2>/dev/null || true
+  pkill -9 -f "gz sim" 2>/dev/null || true
+  pkill -9 -f "gzserver" 2>/dev/null || true
+  
+  echo "[batch] 清理完成。"
   exit 1
 }
 trap batch_cleanup INT TERM
@@ -42,8 +78,9 @@ trap batch_cleanup INT TERM
 PARAMS_DIR="${ROOT_DIR}/config/nav2_params"
 
 # 批量测试配置
-TIMEOUT_PER_TEST="${TIMEOUT_PER_TEST:-300}"
+# 注意：不再使用整体超时，每个 waypoint 有独立的超时限制
 PAUSE_BETWEEN="${PAUSE_BETWEEN:-10}"
+WAYPOINT_TIMEOUT="${WAYPOINT_TIMEOUT:-120}"  # 每个 waypoint 的超时时间（秒）
 SKIP_EXISTING="${SKIP_EXISTING:-0}"
 HEADLESS="${HEADLESS:-0}"      # 0=显示 Gazebo GUI，1=无头模式
 RUN_RVIZ="${RUN_RVIZ:-1}"      # 1=启动 RViz，0=不启动
@@ -83,7 +120,7 @@ echo "  配置目录: ${PARAMS_DIR}"
 echo "  输出目录: ${OUTPUT_DIR}"
 echo "  测试配置: ${CONFIGS[*]}"
 echo "  配置数量: ${#CONFIGS[@]}"
-echo "  每测试超时: ${TIMEOUT_PER_TEST}s"
+echo "  Waypoint 超时: ${WAYPOINT_TIMEOUT}s"
 echo "  测试间隔: ${PAUSE_BETWEEN}s"
 echo "  无头模式: ${HEADLESS}"
 echo "============================================================"
@@ -131,7 +168,7 @@ for i in "${!CONFIGS[@]}"; do
     echo "  - name: ${cfg}" >> "${SUMMARY_FILE}"
     echo "    status: skipped" >> "${SUMMARY_FILE}"
     echo "    reason: config_file_not_found" >> "${SUMMARY_FILE}"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
     continue
   fi
   
@@ -142,7 +179,7 @@ for i in "${!CONFIGS[@]}"; do
     echo "  - name: ${cfg}" >> "${SUMMARY_FILE}"
     echo "    status: skipped" >> "${SUMMARY_FILE}"
     echo "    reason: result_exists" >> "${SUMMARY_FILE}"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
     continue
   fi
   
@@ -152,17 +189,18 @@ for i in "${!CONFIGS[@]}"; do
   export OUTPUT_DIR="${OUTPUT_DIR}"
   export HEADLESS="${HEADLESS}"
   export RUN_RVIZ="${RUN_RVIZ}"
+  export WAYPOINT_TIMEOUT="${WAYPOINT_TIMEOUT}"
   
   # 记录测试开始时间
   TEST_START=$(date +%s)
   
   echo "[batch] 启动测试: ${cfg}"
   echo "[batch] 参数文件: ${PARAM_FILE}"
-  echo "[batch] 超时: ${TIMEOUT_PER_TEST}s"
+  echo "[batch] Waypoint 超时: ${WAYPOINT_TIMEOUT}s"
   
-  # 运行测试（带超时）
+  # 运行测试（不设置整体超时，每个 waypoint 有独立超时）
   set +e
-  timeout "${TIMEOUT_PER_TEST}" "${SCRIPT_DIR}/launch_tiago_test.sh"
+  "${SCRIPT_DIR}/launch_tiago_test.sh"
   EXIT_CODE=$?
   set -e
   
@@ -177,28 +215,39 @@ for i in "${!CONFIGS[@]}"; do
   
   if [ ${EXIT_CODE} -eq 0 ]; then
     echo "[batch] ✓ 测试完成: ${cfg} (耗时 ${TEST_DURATION}s)"
-    echo "    status: passed" >> "${SUMMARY_FILE}"
+    echo "    status: completed" >> "${SUMMARY_FILE}"
     echo "    exit_code: 0" >> "${SUMMARY_FILE}"
-    ((PASSED++))
-  elif [ ${EXIT_CODE} -eq 124 ]; then
-    echo "[batch] ✗ 测试超时: ${cfg}"
-    echo "    status: timeout" >> "${SUMMARY_FILE}"
-    echo "    exit_code: 124" >> "${SUMMARY_FILE}"
-    ((FAILED++))
+    PASSED=$((PASSED + 1))
   else
-    echo "[batch] ✗ 测试失败: ${cfg} (退出码: ${EXIT_CODE})"
-    echo "    status: failed" >> "${SUMMARY_FILE}"
+    echo "[batch] ✗ 测试异常退出: ${cfg} (退出码: ${EXIT_CODE})"
+    echo "    status: error" >> "${SUMMARY_FILE}"
     echo "    exit_code: ${EXIT_CODE}" >> "${SUMMARY_FILE}"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
   fi
   
-  # 清理残留进程
+  # 清理残留进程（与 batch_cleanup 保持一致）
   echo "[batch] 清理进程..."
+  pkill -f "ign gazebo" 2>/dev/null || true
   pkill -f "gz sim" 2>/dev/null || true
   pkill -f "gzserver" 2>/dev/null || true
+  pkill -f "gzclient" 2>/dev/null || true
   pkill -f "nav2" 2>/dev/null || true
+  pkill -f "bt_navigator" 2>/dev/null || true
+  pkill -f "controller_server" 2>/dev/null || true
+  pkill -f "planner_server" 2>/dev/null || true
+  pkill -f "component_container" 2>/dev/null || true
   pkill -f "rviz2" 2>/dev/null || true
+  pkill -f "parameter_bridge" 2>/dev/null || true
+  pkill -f "robot_state_publisher" 2>/dev/null || true
+  pkill -f "nav_performance_test" 2>/dev/null || true
+  pkill -f "odom_to_tf" 2>/dev/null || true
+  pkill -f "laser_frame_remapper" 2>/dev/null || true
   sleep 2
+  
+  # 强制杀死残留的 Gazebo
+  pkill -9 -f "ign gazebo" 2>/dev/null || true
+  pkill -9 -f "gz sim" 2>/dev/null || true
+  sleep 1
   
   # 测试间隔
   if [ ${test_num} -lt ${total} ]; then

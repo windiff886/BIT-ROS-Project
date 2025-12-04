@@ -5,6 +5,17 @@
 
 controller_server:
   ros__parameters:
+    # Progress checker
+    progress_checker:
+      required_movement_radius: 0.4
+      movement_time_allowance: 12.0
+    
+    # Goal checker - 平滑路径需要较精确到位
+    general_goal_checker:
+      xy_goal_tolerance: 0.20
+      yaw_goal_tolerance: 0.20
+      stateful: True
+    
     FollowPath:
       # 速度限制 - 中等速度
       min_vel_x: 0.0
@@ -31,9 +42,14 @@ controller_server:
       GoalDist.scale: 20.0
       BaseObstacle.scale: 0.03
       
-    general_goal_checker:
-      xy_goal_tolerance: 0.15
-      yaw_goal_tolerance: 0.15
+      # RotateToGoal 参数 - 平滑过渡
+      RotateToGoal.scale: 30.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+      
+      # 停止速度阈值
+      trans_stopped_velocity: 0.25
+      xy_goal_tolerance: 0.20
 
 global_costmap:
   global_costmap:

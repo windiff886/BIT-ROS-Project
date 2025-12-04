@@ -75,12 +75,13 @@ class TestReport:
 
 
 class NavPerformanceTester(Node):
-    def __init__(self, config_file: str, output_dir: str, test_name: str = ''):
+    def __init__(self, config_file: str, output_dir: str, test_name: str = '', waypoint_timeout: float = 120.0):
         super().__init__('nav_performance_tester')
         
         self.config_file = config_file
         self.output_dir = output_dir
         self.test_name = test_name or datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.waypoint_timeout = waypoint_timeout  # 每个 waypoint 的超时时间
         
         self.report = TestReport(
             test_name=self.test_name,
@@ -121,6 +122,7 @@ class NavPerformanceTester(Node):
         self.get_logger().info('Nav2 性能测试器已启动')
         self.get_logger().info(f'测试名称: {self.test_name}')
         self.get_logger().info(f'Waypoints: {len(self.waypoints)} 个')
+        self.get_logger().info(f'每个 Waypoint 超时: {self.waypoint_timeout}s')
         self.get_logger().info('=' * 60)
 
     def load_waypoints(self) -> list:
@@ -211,9 +213,24 @@ class NavPerformanceTester(Node):
             result.success = False
             return result
         
-        # 等待结果
+        # 等待结果（使用配置的超时时间）
         result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future, timeout_sec=300.0)
+        
+        # 使用超时等待
+        wait_start = time.time()
+        while not result_future.done():
+            rclpy.spin_once(self, timeout_sec=0.5)
+            elapsed = time.time() - wait_start
+            if elapsed > self.waypoint_timeout:
+                # 超时，取消导航目标
+                self.get_logger().warn(f'  ⏱ Waypoint 超时 ({self.waypoint_timeout}s)，取消导航...')
+                cancel_future = goal_handle.cancel_goal_async()
+                rclpy.spin_until_future_complete(self, cancel_future, timeout_sec=5.0)
+                result.success = False
+                result.time_seconds = elapsed
+                result.distance_meters = self.path_distance
+                self.get_logger().warn(f'  ✗ 失败 (超时)')
+                return result
         
         nav_result = result_future.result()
         result.time_seconds = time.time() - start_time
@@ -446,11 +463,13 @@ def main():
     parser.add_argument('-c', '--config', required=True, help='Waypoints 配置文件')
     parser.add_argument('-o', '--output', default='test_results', help='输出目录')
     parser.add_argument('-n', '--name', default='', help='测试名称')
+    parser.add_argument('-t', '--timeout', type=float, default=120.0, 
+                        help='每个 waypoint 的超时时间（秒），默认 120')
     
     args = parser.parse_args()
     
     rclpy.init()
-    tester = NavPerformanceTester(args.config, args.output, args.name)
+    tester = NavPerformanceTester(args.config, args.output, args.name, args.timeout)
     
     try:
         tester.run_test()

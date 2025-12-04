@@ -5,35 +5,53 @@
 
 controller_server:
   ros__parameters:
-    FollowPath:
-      # 速度限制 - 最大速度
-      min_vel_x: 0.1
-      max_vel_x: 2.0
-      max_speed_xy: 2.0
-      min_speed_theta: 0.0
-      max_vel_theta: 2.0
-      
-      # 加速度限制 - 最大加速
-      acc_lim_x: 4.0
-      decel_lim_x: -4.0
-      acc_lim_theta: 5.0
-      decel_lim_theta: -5.0
-      
-      # 轨迹仿真
-      sim_time: 2.0
-      vx_samples: 25
-      vtheta_samples: 25
-      
-      # 路径跟随权重 - 偏向目标
-      PathAlign.scale: 25.0
-      PathDist.scale: 25.0
-      GoalAlign.scale: 30.0
-      GoalDist.scale: 30.0
-      BaseObstacle.scale: 0.01
-      
+    # Progress checker - 放宽运动要求
+    progress_checker:
+      required_movement_radius: 0.3
+      movement_time_allowance: 15.0
+    
+    # Goal checker - 增加容差以避免在目标附近震荡
     general_goal_checker:
-      xy_goal_tolerance: 0.30
-      yaw_goal_tolerance: 0.30
+      xy_goal_tolerance: 0.35
+      yaw_goal_tolerance: 0.40
+      stateful: True
+    
+    FollowPath:
+      # 速度限制 - 高速但合理
+      min_vel_x: 0.0
+      max_vel_x: 1.5
+      max_speed_xy: 1.5
+      min_speed_theta: 0.0
+      max_vel_theta: 1.5
+      
+      # 加速度限制 - 高加速
+      acc_lim_x: 3.0
+      decel_lim_x: -3.0
+      acc_lim_theta: 3.5
+      decel_lim_theta: -3.5
+      
+      # 轨迹仿真 - 增加采样以获得更好的轨迹
+      sim_time: 2.5
+      vx_samples: 30
+      vtheta_samples: 30
+      
+      # 路径跟随权重
+      PathAlign.scale: 28.0
+      PathDist.scale: 28.0
+      GoalAlign.scale: 26.0
+      GoalDist.scale: 26.0
+      BaseObstacle.scale: 0.02
+      
+      # 关键：RotateToGoal 参数 - 修复目标附近旋转问题
+      RotateToGoal.scale: 28.0
+      RotateToGoal.slowing_factor: 3.0
+      RotateToGoal.lookahead_time: -1.0
+      
+      # 停止速度阈值 - 放宽以便更容易判定为停止
+      trans_stopped_velocity: 0.30
+      
+      # 目标容差（与 goal_checker 一致）
+      xy_goal_tolerance: 0.35
 
 global_costmap:
   global_costmap:

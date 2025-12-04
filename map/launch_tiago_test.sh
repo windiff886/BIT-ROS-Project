@@ -42,6 +42,7 @@ RUN_RVIZ="${RUN_RVIZ:-1}"
 ARM_TYPE="${ARM_TYPE:-no-arm}"
 AUTO_INIT_POSE="${AUTO_INIT_POSE:-1}"
 INIT_POSE_WAIT="${INIT_POSE_WAIT:-10}"
+WAYPOINT_TIMEOUT="${WAYPOINT_TIMEOUT:-120}"  # 每个 waypoint 的超时时间（秒）
 
 # 机器人初始位置
 TIAGO_X="${TIAGO_X:-0}"
@@ -142,28 +143,51 @@ cleanup() {
   echo "[test] 正在关闭..."
   set +e
   
-  # 先发送 SIGTERM 让进程退出
+  # 先发送 SIGTERM 让进程优雅退出
   for pid in "${PIDS[@]}"; do
     kill "${pid}" 2>/dev/null || true
   done
   
-  # 清理所有相关进程
+  # 清理 Gazebo/Ignition 相关进程
+  pkill -f "ign gazebo" 2>/dev/null || true
   pkill -f "gz sim" 2>/dev/null || true
   pkill -f "gzserver" 2>/dev/null || true
+  pkill -f "gzclient" 2>/dev/null || true
+  pkill -f "ruby.*gz" 2>/dev/null || true
+  
+  # 清理 ROS2 导航相关进程
+  pkill -f "nav2" 2>/dev/null || true
+  pkill -f "bt_navigator" 2>/dev/null || true
+  pkill -f "controller_server" 2>/dev/null || true
+  pkill -f "planner_server" 2>/dev/null || true
+  pkill -f "behavior_server" 2>/dev/null || true
+  pkill -f "amcl" 2>/dev/null || true
+  pkill -f "map_server" 2>/dev/null || true
+  pkill -f "lifecycle_manager" 2>/dev/null || true
+  pkill -f "component_container" 2>/dev/null || true
+  
+  # 清理桥接和 TF 发布
   pkill -f "parameter_bridge" 2>/dev/null || true
   pkill -f "robot_state_publisher" 2>/dev/null || true
-  pkill -f "nav2" 2>/dev/null || true
+  pkill -f "static_transform_publisher" 2>/dev/null || true
+  
+  # 清理可视化和测试进程
   pkill -f "rviz2" 2>/dev/null || true
   pkill -f "nav_performance_test" 2>/dev/null || true
   pkill -f "odom_to_tf" 2>/dev/null || true
   pkill -f "laser_frame_remapper" 2>/dev/null || true
   
-  sleep 1
+  sleep 2
   
   # 强制杀死残留进程
   for pid in "${PIDS[@]}"; do
     kill -9 "${pid}" 2>/dev/null || true
   done
+  
+  # 强制杀死残留的 Gazebo
+  pkill -9 -f "ign gazebo" 2>/dev/null || true
+  pkill -9 -f "gz sim" 2>/dev/null || true
+  pkill -9 -f "gzserver" 2>/dev/null || true
   
   echo "[test] 已退出。"
   exit 0
@@ -354,6 +378,7 @@ echo "[test] 开始导航性能测试！"
 echo "[test] 测试名称: ${TEST_NAME}"
 echo "[test] Waypoints: ${WAYPOINT_CFG}"
 echo "[test] 目标点数量: ${WAYPOINT_COUNT}"
+echo "[test] Waypoint 超时: ${WAYPOINT_TIMEOUT}s"
 echo "[test] 报告输出: ${OUTPUT_DIR}"
 echo "[test] ================================================"
 echo ""
@@ -362,8 +387,10 @@ echo ""
 python3 "${ROOT_DIR}/src/nav_performance_test.py" \
   --config "${WAYPOINT_CFG}" \
   --output "${OUTPUT_DIR}" \
-  --name "${TEST_NAME}" &
-PIDS+=($!)
+  --name "${TEST_NAME}" \
+  --timeout "${WAYPOINT_TIMEOUT}" &
+PERF_PID=$!
+PIDS+=($PERF_PID)
 
 echo ""
 echo "[test] 性能测试已启动，按 Ctrl+C 结束测试。"
@@ -378,4 +405,14 @@ echo "  RViz    : /tmp/tiago_test_rviz.log"
 echo "  Bridge  : /tmp/tiago_test_bridge.log"
 echo ""
 
-wait "${PIDS[0]}"
+# 等待性能测试脚本完成（而不是等待 Gazebo）
+wait $PERF_PID
+PERF_EXIT=$?
+
+echo "[test] 性能测试已完成，退出码: $PERF_EXIT"
+echo "[test] 正在清理..."
+
+# 测试完成后自动清理
+cleanup
+
+exit $PERF_EXIT
