@@ -1,0 +1,32 @@
+# Frame used for all waypoints unless overridden per waypoint
+frame_id: map
+
+# Set to 0 to send all waypoints; >0 to take only the first N
+count: 0
+
+waypoints:
+  - name: point_1
+    pose:
+      x: 1.0
+      y: 0.0
+      yaw_deg: 0
+  - name: point_2
+    pose:
+      x: 2.0
+      y: 1.0
+      yaw_deg: 90
+  - name: point_3
+    pose:
+      x: 1.5
+      y: 2.0
+      yaw_deg: 180
+  - name: point_4
+    pose:
+      x: 0.0
+      y: 1.5
+      yaw_deg: -90
+  - name: return_home
+    pose:
+      x: 0.0
+      y: 0.0
+      yaw_deg: 0

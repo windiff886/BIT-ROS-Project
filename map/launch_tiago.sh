@@ -9,14 +9,14 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 WORLD_NAME="${1:-warehouse}"
 WORLD_FILE="${ROOT_DIR}/map/turtlebot4_gz_bringup/worlds/${WORLD_NAME}.sdf"
-TIAGO_MODEL="${ROOT_DIR}/src/robot/tiago_robot/tiago_description/models/tiago/model.sdf"
+TIAGO_MODEL="${ROOT_DIR}/robot/tiago_robot/tiago_description/models/tiago/model.sdf"
 # 额外资源路径，保证模型 mesh 可被找到
 RESOURCE_DIRS=(
   "${ROOT_DIR}/map/turtlebot4_gz_bringup"
-  "${ROOT_DIR}/src/robot/tiago_robot/tiago_description"
-  "${ROOT_DIR}/src/robot/pmb2_robot/pmb2_description"
-  "${ROOT_DIR}/src/robot/pal_urdf_utils"
-  "${ROOT_DIR}/src/robot/pal_hey5/pal_hey5_description"
+  "${ROOT_DIR}/robot/tiago_robot/tiago_description"
+  "${ROOT_DIR}/robot/pmb2_robot/pmb2_description"
+  "${ROOT_DIR}/robot/pal_urdf_utils"
+  "${ROOT_DIR}/robot/pal_hey5/pal_hey5_description"
 )
 TIAGO_NAME="${TIAGO_NAME:-tiago}"
 HEADLESS="${HEADLESS:-0}"  # 默认启动 GUI；无头运行请设 HEADLESS=1
@@ -41,9 +41,15 @@ if [ -f "/opt/ros/humble/setup.bash" ]; then
   # shellcheck source=/opt/ros/humble/setup.bash
   source /opt/ros/humble/setup.bash
 fi
-if [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+USE_LOCAL_INSTALL="${USE_LOCAL_INSTALL:-0}"
+if [ "${USE_LOCAL_INSTALL}" = "1" ] && [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+  echo "[tiago-start] 使用本地 install/ 覆盖层。"
   # shellcheck source=../install/setup.bash
   source "${ROOT_DIR}/install/setup.bash"
+else
+  if [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+    echo "[tiago-start] 检测到本地 install/，默认跳过（设置 USE_LOCAL_INSTALL=1 可启用）。"
+  fi
 fi
 set -u
 
@@ -131,62 +137,3 @@ fi
 
 echo "[tiago-start] 仿真运行中，按 Ctrl+C 退出。"
 wait "${SIM_PID}"
-
-        btn_frame = tk.Frame(master)
-        btn_frame.pack(pady=10)
-        tk.Button(btn_frame, text="↑", width=6, height=2,
-                  command=partial(self.send_cmd, 1, 0)).grid(row=0, column=1, padx=4, pady=4)
-        tk.Button(btn_frame, text="←", width=6, height=2,
-                  command=partial(self.send_cmd, 0, 1)).grid(row=1, column=0, padx=4, pady=4)
-        tk.Button(btn_frame, text="停", width=6, height=2,
-                  command=self.stop).grid(row=1, column=1, padx=4, pady=4)
-        tk.Button(btn_frame, text="→", width=6, height=2,
-                  command=partial(self.send_cmd, 0, -1)).grid(row=1, column=2, padx=4, pady=4)
-        tk.Button(btn_frame, text="↓", width=6, height=2,
-                  command=partial(self.send_cmd, -1, 0)).grid(row=2, column=1, padx=4, pady=4)
-
-        self.status = tk.Label(master, text="等待 ROS2 初始化...")
-        self.status.pack(pady=5)
-        master.protocol("WM_DELETE_WINDOW", self.on_close)
-
-        self.init_ros()
-
-    def init_ros(self):
-        rclpy.init(args=None)
-        self.node = rclpy.create_node("tiago_teleop_ui")
-        self.pub = self.node.create_publisher(Twist, "/cmd_vel", 10)
-        self.status.config(text="已连接：/cmd_vel")
-
-    def send_cmd(self, lin_dir, ang_dir):
-        msg = Twist()
-        msg.linear.x = lin_dir * float(self.lin_scale.get())
-        msg.angular.z = ang_dir * float(self.ang_scale.get())
-        if self.pub is not None:
-            self.pub.publish(msg)
-            self.status.config(text=f"线 {msg.linear.x:.2f} m/s, 角 {msg.angular.z:.2f} rad/s")
-
-    def stop(self):
-        if self.pub is not None:
-            self.pub.publish(Twist())
-            self.status.config(text="已发送停止")
-
-    def on_close(self):
-        try:
-            self.stop()
-        except Exception:
-            pass
-        if self.node is not None:
-            self.node.destroy_node()
-        rclpy.shutdown()
-        self.master.destroy()
-
-
-def main():
-    root = tk.Tk()
-    app = TeleopUI(root)
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main()
-PY

@@ -1,0 +1,66 @@
+frame_id: map
+count: 0
+waypoints:
+- name: point_1
+  pose:
+    x: -8.208
+    y: 5.542
+    yaw_deg: 115.2
+- name: point_2
+  pose:
+    x: 11.049
+    y: 17.055
+    yaw_deg: 73.6
+- name: point_3
+  pose:
+    x: -12.117
+    y: 22.803
+    yaw_deg: -107.9
+- name: point_4
+  pose:
+    x: -12.932
+    y: 8.443
+    yaw_deg: 69.3
+- name: point_5
+  pose:
+    x: 13.021
+    y: 14.159
+    yaw_deg: -74.1
+- name: point_6
+  pose:
+    x: 5.248
+    y: 3.478
+    yaw_deg: -47.1
+- name: point_7
+  pose:
+    x: 8.408
+    y: -23.353
+    yaw_deg: -163.5
+- name: point_8
+  pose:
+    x: 2.194
+    y: -5.638
+    yaw_deg: 84.6
+- name: point_9
+  pose:
+    x: -4.449
+    y: -3.983
+    yaw_deg: -132.6
+- name: point_10
+  pose:
+    x: -9.095
+    y: -23.586
+    yaw_deg: -160.6
+- name: point_11
+  pose:
+    x: -12.114
+    y: -3.401
+    yaw_deg: 38.9
+- name: point_12
+  pose:
+    x: -0.856
+    y: 0.855
+    yaw_deg: 12.0
+_metadata:
+  recorded_at: '2025-12-04 18:31:21'
+  total_points: 12

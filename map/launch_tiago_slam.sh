@@ -10,16 +10,16 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 WORLD_NAME="${1:-warehouse}"
 WORLD_FILE="${ROOT_DIR}/map/turtlebot4_gz_bringup/worlds/${WORLD_NAME}.sdf"
-TIAGO_MODEL="${ROOT_DIR}/src/robot/tiago_robot/tiago_description/models/tiago/model.sdf"
-TIAGO_URDF="${ROOT_DIR}/src/robot/tiago_robot/tiago_description/robots/tiago.urdf.xacro"
+TIAGO_MODEL="${ROOT_DIR}/robot/tiago_robot/tiago_description/models/tiago/model.sdf"
+TIAGO_URDF="${ROOT_DIR}/robot/tiago_robot/tiago_description/robots/tiago.urdf.xacro"
 
 # 资源路径
 RESOURCE_DIRS=(
   "${ROOT_DIR}/map/turtlebot4_gz_bringup"
-  "${ROOT_DIR}/src/robot/tiago_robot/tiago_description"
-  "${ROOT_DIR}/src/robot/pmb2_robot/pmb2_description"
-  "${ROOT_DIR}/src/robot/pal_urdf_utils"
-  "${ROOT_DIR}/src/robot/pal_hey5/pal_hey5_description"
+  "${ROOT_DIR}/robot/tiago_robot/tiago_description"
+  "${ROOT_DIR}/robot/pmb2_robot/pmb2_description"
+  "${ROOT_DIR}/robot/pal_urdf_utils"
+  "${ROOT_DIR}/robot/pal_hey5/pal_hey5_description"
 )
 
 TIAGO_NAME="${TIAGO_NAME:-tiago}"
@@ -46,8 +46,14 @@ set +u
 if [ -f "/opt/ros/humble/setup.bash" ]; then
   source /opt/ros/humble/setup.bash
 fi
-if [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+USE_LOCAL_INSTALL="${USE_LOCAL_INSTALL:-0}"
+if [ "${USE_LOCAL_INSTALL}" = "1" ] && [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+  echo "[slam-start] 使用本地 install/ 覆盖层。"
   source "${ROOT_DIR}/install/setup.bash"
+else
+  if [ -f "${ROOT_DIR}/install/setup.bash" ]; then
+    echo "[slam-start] 检测到本地 install/，默认跳过（设置 USE_LOCAL_INSTALL=1 可启用）。"
+  fi
 fi
 set -u
 

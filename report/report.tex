@@ -1,0 +1,1014 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[UTF8]{ctex}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage{titlesec}
+
+% 页边距设置 - 更紧凑
+\geometry{left=2cm,right=2cm,top=2cm,bottom=2cm}
+
+% 行距设置
+\setstretch{1.1}
+
+% 段落间距
+\setlength{\parskip}{0.3em}
+\setlength{\parindent}{2em}
+
+% 列表间距设置 - 更紧凑
+\setlist{nosep,leftmargin=2em}
+\setlist[itemize]{itemsep=0pt,parsep=0pt,topsep=2pt}
+\setlist[enumerate]{itemsep=0pt,parsep=0pt,topsep=2pt}
+
+% 章节标题间距 - 更紧凑
+\titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{1ex plus 0.2ex}
+\titlespacing*{\subsection}{0pt}{1.2ex plus 0.4ex minus 0.2ex}{0.8ex plus 0.2ex}
+\titlespacing*{\subsubsection}{0pt}{1ex plus 0.3ex minus 0.1ex}{0.5ex plus 0.1ex}
+\titlespacing*{\paragraph}{0pt}{0.8ex plus 0.2ex minus 0.1ex}{1em}
+
+% 代码样式 - 更小字体
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    tabsize=2,
+    aboveskip=0.5em,
+    belowskip=0.5em
+}
+
+% 图表间距
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+% 表格内容更紧凑
+\renewcommand{\arraystretch}{0.9}
+
+\title{\textbf{实践项目:仓库管理员(Warehouse Runner)} \\ \Large 研习报告}
+\author{姓名:卢祥云 \\ 学号:1120230944 \\ 1120230944@bit.edu.cn}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+%====================================================================
+% 第一部分:系统概述与环境介绍
+%====================================================================
+\section{系统概述与环境介绍}
+
+本部分将详细介绍本项目所使用的核心技术栈,包括Nav2导航框架、TIAGo机器人平台、仿真环境构建以及项目启动脚本的功能说明。
+
+%--------------------------------------------------------------------
+\subsection{Nav2导航框架详解}
+
+\subsubsection{Nav2概述}
+
+Nav2(Navigation2)是ROS 2中的官方导航堆栈,是ROS 1中Navigation Stack的完全重写版本。Nav2为移动机器人提供了一套完整的导航解决方案,包括感知、定位、路径规划、运动控制以及恢复行为等功能模块。
+
+Nav2的设计理念强调模块化和可扩展性,所有核心功能都以插件形式实现,用户可以根据需要替换默认组件或添加自定义功能。这种架构使得Nav2能够适应从简单的室内机器人到复杂的室外自主系统等各种应用场景。
+
+\subsubsection{Nav2系统架构}
+
+Nav2采用分层架构设计,主要包含以下核心组件:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    box/.style={rectangle, draw, minimum width=3cm, minimum height=0.8cm, align=center},
+    bigbox/.style={rectangle, draw, minimum width=10cm, minimum height=1cm, align=center, fill=blue!10},
+    arrow/.style={->, thick}
+]
+    \node[bigbox] (bt) at (0,4) {BT Navigator(行为树导航器)};
+    \node[box, fill=green!20] (planner) at (-4,2) {Planner Server\\全局规划器};
+    \node[box, fill=green!20] (controller) at (0,2) {Controller Server\\局部控制器};
+    \node[box, fill=green!20] (behavior) at (4,2) {Behavior Server\\恢复行为};
+    \node[box, fill=orange!20] (global_cm) at (-2,0) {Global Costmap\\全局代价地图};
+    \node[box, fill=orange!20] (local_cm) at (2,0) {Local Costmap\\局部代价地图};
+    \node[box, fill=yellow!20] (amcl) at (-4,-2) {AMCL\\自适应蒙特卡洛定位};
+    \node[box, fill=yellow!20] (map) at (0,-2) {Map Server\\地图服务器};
+    \node[box, fill=yellow!20] (slam) at (4,-2) {SLAM Toolbox\\建图工具};
+    \draw[arrow] (bt) -- (planner);
+    \draw[arrow] (bt) -- (controller);
+    \draw[arrow] (bt) -- (behavior);
+    \draw[arrow] (planner) -- (global_cm);
+    \draw[arrow] (controller) -- (local_cm);
+    \draw[arrow] (global_cm) -- (map);
+    \draw[arrow] (local_cm) -- (amcl);
+\end{tikzpicture}
+\caption{Nav2系统架构示意图}
+\end{figure}
+
+\paragraph{1. 行为树导航器(BT Navigator)}
+
+BT Navigator是Nav2的核心协调模块,使用行为树(Behavior Tree)来管理导航任务的执行流程。行为树相比传统的有限状态机具有以下优势:
+\begin{itemize}
+    \item \textbf{模块化}:每个节点独立封装特定行为
+    \item \textbf{可复用性}:子树可以在不同场景中重复使用
+    \item \textbf{易于调试}:树状结构便于理解和追踪执行流程
+    \item \textbf{动态切换}:支持运行时动态修改行为逻辑
+\end{itemize}
+
+Nav2默认使用的行为树配置文件为\texttt{navigate\_w\_replanning\_and\_recovery.xml},该配置实现了带重规划和恢复机制的导航流程。
+
+\paragraph{2. 全局路径规划器(Planner Server)}
+
+Planner Server负责计算从当前位置到目标点的全局路径。Nav2提供了多种规划算法插件:
+
+\begin{table}[H]
+\centering
+\caption{Nav2全局规划器对比}
+\begin{tabular}{lll}
+\toprule
+\textbf{规划器} & \textbf{算法} & \textbf{特点} \\
+\midrule
+NavFn Planner & Dijkstra/A* & 经典算法,稳定可靠 \\
+Smac Planner 2D & A*变体 & 支持更多启发式 \\
+Smac Hybrid-A* & Hybrid A* & 考虑运动学约束 \\
+Smac Lattice & State Lattice & 适用于阿克曼模型 \\
+Theta* Planner & Theta* & 产生更平滑路径 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+在本项目中,默认使用NavFn Planner,其配置如下:
+\begin{lstlisting}[language=Python]
+planner_server:
+  ros__parameters:
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+\end{lstlisting}
+
+\paragraph{3. 局部控制器(Controller Server)}
+
+Controller Server负责跟踪全局路径并生成实时速度指令。本项目涉及的控制器包括:
+
+\textbf{(a) DWB控制器(Dynamic Window Based)}
+
+DWB是基于动态窗口法的控制器,通过在速度空间中采样可行轨迹并评分来选择最优控制。主要参数包括:
+\begin{itemize}
+    \item \texttt{max\_vel\_x}:最大前向速度(本项目设置为1.0 m/s)
+    \item \texttt{max\_vel\_theta}:最大角速度(1.0 rad/s)
+    \item \texttt{sim\_time}:轨迹仿真时间(1.7s)
+    \item \texttt{vx\_samples, vtheta\_samples}:速度采样数量
+\end{itemize}
+
+DWB使用多个评价函数(Critics)对轨迹进行综合评分:
+\begin{lstlisting}[language=Python]
+critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
+          "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+\end{lstlisting}
+
+\textbf{(b) RPP控制器(Regulated Pure Pursuit)}
+
+RPP是一种改进的纯追踪控制器,增加了速度调节机制:
+\begin{itemize}
+    \item 根据路径曲率自动降速
+    \item 接近障碍物时减速
+    \item 接近目标点时平滑减速
+    \item 前瞻距离(Lookahead Distance)可配置
+\end{itemize}
+
+\textbf{(c) MPPI控制器(Model Predictive Path Integral)}
+
+MPPI是基于模型预测和路径积分的高级控制器:
+\begin{itemize}
+    \item 使用蒙特卡洛采样预测多条轨迹
+    \item 根据代价函数对轨迹加权平均
+    \item 支持复杂的代价函数设计
+    \item 计算量较大但效果更优
+\end{itemize}
+
+\paragraph{4. 代价地图(Costmap)}
+
+代价地图是Nav2进行路径规划和避障的基础。系统维护两种代价地图:
+
+\textbf{全局代价地图(Global Costmap)}:
+\begin{itemize}
+    \item 覆盖整个已知环境
+    \item 用于全局路径规划
+    \item 包含静态地图层、障碍物层、膨胀层
+\end{itemize}
+
+\textbf{局部代价地图(Local Costmap)}:
+\begin{itemize}
+    \item 以机器人为中心的滚动窗口
+    \item 用于局部避障和控制
+    \item 实时更新传感器观测
+\end{itemize}
+
+关键参数——膨胀层(Inflation Layer):
+\begin{lstlisting}[language=Python]
+inflation_layer:
+  plugin: "nav2_costmap_2d::InflationLayer"
+  cost_scaling_factor: 3.0  # 代价衰减因子
+  inflation_radius: 0.55    # 膨胀半径
+\end{lstlisting}
+
+\paragraph{5. 定位系统(AMCL)}
+
+AMCL(Adaptive Monte Carlo Localization)使用粒子滤波算法进行机器人定位。核心原理是:
+\begin{enumerate}
+    \item 初始化:在地图上分布大量粒子(假设位姿)
+    \item 预测:根据里程计信息移动粒子
+    \item 更新:根据激光扫描与地图匹配程度为粒子赋权重
+    \item 重采样:保留高权重粒子,淘汰低权重粒子
+\end{enumerate}
+
+主要配置参数:
+\begin{lstlisting}[language=Python]
+amcl:
+  ros__parameters:
+    min_particles: 500
+    max_particles: 2000
+    laser_model_type: "likelihood_field"
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+\end{lstlisting}
+
+\paragraph{6. 恢复行为(Behavior Server)}
+
+当导航陷入困境时,恢复行为模块会尝试使机器人脱困:
+\begin{itemize}
+    \item \texttt{Spin}:原地旋转,扫描周围环境
+    \item \texttt{BackUp}:后退指定距离
+    \item \texttt{DriveOnHeading}:沿当前方向行驶
+    \item \texttt{Wait}:等待障碍物移开
+\end{itemize}
+
+%--------------------------------------------------------------------
+\subsection{TIAGo机器人详解}
+
+\subsubsection{TIAGo机器人概述}
+
+TIAGo是由PAL Robotics公司开发的服务机器人平台,专为研究和商业应用设计。该机器人具有高度模块化的设计,可根据需求配置不同的硬件组件。
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.8]
+    \draw[fill=gray!30] (-1.5,-0.5) rectangle (1.5,0.5);
+    \node at (0,0) {移动底盘};
+    \draw[fill=blue!20] (-0.3,0.5) rectangle (0.3,3);
+    \node[rotate=90] at (0,1.75) {升降柱};
+    \draw[fill=orange!30] (-0.8,3) rectangle (0.8,4);
+    \node at (0,3.5) {头部};
+    \draw[fill=green!20, dashed] (0.3,2) -- (2,2.5) -- (2.5,1.5) -- (1,1.2) -- cycle;
+    \node at (1.5,1.8) {\small 机械臂};
+    \draw[<-] (-1.5,0) -- (-2.5,0) node[left] {PMB2底盘};
+    \draw[<-] (0.8,3.5) -- (2,3.5) node[right] {RGB-D相机};
+    \draw[<-] (-0.3,2) -- (-2,2) node[left] {激光雷达};
+\end{tikzpicture}
+\caption{TIAGo机器人结构示意图}
+\end{figure}
+
+\subsubsection{TIAGo硬件组成}
+
+\paragraph{1. 移动底盘(PMB2 Base)}
+
+TIAGo采用PMB2差速驱动底盘,具有以下特性:
+\begin{itemize}
+    \item \textbf{驱动方式}:差速驱动(Differential Drive)
+    \item \textbf{最大速度}:前进1.0 m/s,旋转1.0 rad/s
+    \item \textbf{尺寸}:直径约54cm,高度约98cm(不含手臂)
+    \item \textbf{机器人半径}:0.275m(用于导航避障)
+\end{itemize}
+
+差速驱动运动学模型:
+\begin{equation}
+\begin{cases}
+v = \frac{v_r + v_l}{2} \\
+\omega = \frac{v_r - v_l}{L}
+\end{cases}
+\end{equation}
+其中$v_r$和$v_l$分别为左右轮速度,$L$为轮距。
+
+\paragraph{2. 激光雷达(LiDAR)}
+
+TIAGo配备2D激光雷达用于导航和避障:
+\begin{itemize}
+    \item 安装位置:底盘前部(base\_laser\_link)
+    \item 相对底盘偏移:x=0.202m, z=-0.004m
+    \item 扫描范围:通常为270度或360度
+    \item 最大探测距离:20m
+    \item 数据话题:\texttt{/scan}
+\end{itemize}
+
+\paragraph{3. RGB-D相机}
+
+头部配备深度相机用于3D感知:
+\begin{itemize}
+    \item 可选型号:Orbbec Astra、Intel RealSense等
+    \item 功能:物体识别、3D建图、人机交互
+\end{itemize}
+
+\paragraph{4. 机械臂(可选)}
+
+TIAGo可配置7自由度机械臂:
+\begin{itemize}
+    \item 末端执行器:PAL Gripper、Hey5灵巧手、Robotiq夹爪等
+    \item 运动规划:集成MoveIt2框架
+    \item 本项目使用无臂版本(no-arm)以简化导航测试
+\end{itemize}
+
+\subsubsection{TIAGo软件架构}
+
+本项目中TIAGo相关的ROS 2软件包结构如下:
+
+\begin{lstlisting}[language=bash]
+robot/
+|-- tiago_robot/                    # TIAGo核心包
+|   |-- tiago_description/          # 模型描述
+|   |   |-- models/tiago/           # Gazebo SDF模型
+|   |   |-- models/tiago_no_arm/    # 无臂版SDF模型
+|   |   |-- urdf/                   # URDF描述文件
+|   |   |-- meshes/                 # 3D网格文件
+|   |   |-- robots/                 # 机器人配置
+|   |-- tiago_bringup/              # 启动文件
+|   |-- tiago_controller_configuration/
+|-- tiago_navigation/               # 导航相关包
+|   |-- tiago_2dnav/                # 2D导航配置
+|   |-- tiago_laser_sensors/        # 激光传感器配置
+|   |-- tiago_rgbd_sensors/         # RGBD传感器配置
+|-- tiago_simulation/               # 仿真相关包
+|   |-- tiago_gazebo/               # Gazebo仿真配置
+|   |-- tiago_multi/                # 多机器人仿真
+|-- tiago_moveit_config/            # MoveIt运动规划配置
+|-- pal_navigation_cfg_public/      # PAL导航参数
+|   |-- pal_navigation_cfg_params/
+|       |-- params/tiago_nav2.yaml  # Nav2参数文件
+\end{lstlisting}
+
+\subsubsection{TIAGo坐标系(TF Tree)}
+
+TIAGo的坐标系结构遵循REP-105标准:
+
+\begin{lstlisting}
+map
+  |-- odom
+        |-- base_footprint
+              |-- base_link
+                    |-- base_laser_link
+                    |-- torso_lift_link
+                          |-- head_*_link
+                          |-- arm_*_link (如果有)
+\end{lstlisting}
+
+各坐标系说明:
+\begin{itemize}
+    \item \texttt{map}:全局固定坐标系,由AMCL发布
+    \item \texttt{odom}:里程计坐标系,连续但会漂移
+    \item \texttt{base\_footprint}:机器人底盘投影到地面
+    \item \texttt{base\_link}:底盘中心
+    \item \texttt{base\_laser\_link}:激光雷达坐标系
+\end{itemize}
+
+\subsubsection{在本项目中使用TIAGo}
+
+本项目通过以下方式使用TIAGo机器人:
+
+\paragraph{1. 模型加载}
+在Gazebo中加载TIAGo的SDF模型:
+\begin{lstlisting}[language=bash]
+ros2 run ros_gz_sim create \
+  -name tiago \
+  -file tiago_description/models/tiago/model.sdf \
+  -x 0 -y 0 -z 0.05
+\end{lstlisting}
+
+\paragraph{2. 话题桥接}
+通过ros\_gz\_bridge将Gazebo话题桥接到ROS 2:
+\begin{lstlisting}[language=bash]
+ros2 run ros_gz_bridge parameter_bridge \
+  /clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock \
+  /cmd_vel@geometry_msgs/msg/Twist]ignition.msgs.Twist \
+  /odom@nav_msgs/msg/Odometry[ignition.msgs.Odometry \
+  /scan@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan
+\end{lstlisting}
+
+\paragraph{3. 控制接口}
+\begin{itemize}
+    \item 速度指令话题:\texttt{/cmd\_vel}
+    \item 里程计数据:\texttt{/odom}
+    \item 激光扫描数据:\texttt{/scan}
+    \item 关节状态:\texttt{/joint\_states}
+\end{itemize}
+
+%--------------------------------------------------------------------
+\subsection{仿真环境与地图构建}
+
+\subsubsection{仓库仿真环境}
+
+本项目使用Gazebo Sim(Ignition Gazebo)构建仓库仿真环境。仿真世界定义文件位于:
+\begin{lstlisting}
+map/turtlebot4_gz_bringup/worlds/warehouse.sdf
+\end{lstlisting}
+
+\paragraph{环境构成}
+
+仓库环境包含以下主要元素:
+
+\begin{table}[H]
+\centering
+\caption{仓库环境元素}
+\begin{tabular}{lll}
+\toprule
+\textbf{元素类型} & \textbf{数量} & \textbf{来源} \\
+\midrule
+仓库主体 & 1 & OpenRobotics/Warehouse \\
+大型货架(shelf\_big) & 5 & MovAi/shelf\_big \\
+小型货架(shelf) & 8 & MovAi/shelf \\
+护栏(barrier) & 4 & OpenRobotics/Jersey Barrier \\
+椅子等障碍物 & 若干 & OpenRobotics/Chair \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{物理引擎配置}
+
+\begin{lstlisting}[language=XML]
+<physics type="ode">
+  <max_step_size>0.003</max_step_size>
+  <real_time_factor>1.0</real_time_factor>
+</physics>
+\end{lstlisting}
+
+\subsubsection{SLAM建图过程}
+
+\paragraph{SLAM Toolbox简介}
+
+本项目使用SLAM Toolbox进行2D激光SLAM建图。SLAM Toolbox是ROS 2中功能强大的2D SLAM解决方案,支持:
+\begin{itemize}
+    \item 在线同步/异步建图
+    \item 离线地图编辑
+    \item 地图序列化与继续建图
+    \item 回环检测与图优化
+\end{itemize}
+
+\paragraph{建图流程}
+
+\begin{enumerate}
+    \item \textbf{启动仿真环境}:加载Gazebo世界和TIAGo机器人
+    \item \textbf{启动SLAM节点}:运行slam\_toolbox的sync\_slam\_toolbox\_node
+    \item \textbf{遥控建图}:使用teleop\_ui.py控制机器人遍历环境
+    \item \textbf{保存地图}:调用save\_map.sh保存建图结果
+\end{enumerate}
+
+\paragraph{SLAM配置参数}
+
+关键SLAM参数配置:
+\begin{lstlisting}[language=Python]
+slam_toolbox:
+  ros__parameters:
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_footprint
+    scan_topic: /scan
+    resolution: 0.05          # 地图分辨率 5cm/像素
+    max_laser_range: 20.0     # 最大激光探测距离
+    minimum_travel_distance: 0.3  # 触发扫描匹配的最小移动距离
+    minimum_travel_heading: 0.3   # 触发扫描匹配的最小旋转角度
+    do_loop_closing: true     # 启用回环检测
+\end{lstlisting}
+
+\paragraph{地图文件格式}
+
+SLAM建图完成后生成以下文件:
+\begin{itemize}
+    \item \texttt{*.pgm}:灰度图像格式的占据栅格地图
+    \item \texttt{*.yaml}:地图元数据文件,包含分辨率、原点等信息
+    \item \texttt{*\_slam.posegraph}:SLAM序列化文件,可用于继续编辑
+\end{itemize}
+
+地图YAML文件示例:
+\begin{lstlisting}[language=Python]
+image: warehouse.pgm
+resolution: 0.050000    # 每像素代表0.05米
+origin: [-50.0, -50.0, 0.0]  # 地图原点在世界坐标系中的位置
+negate: 0
+occupied_thresh: 0.65   # 占据概率阈值
+free_thresh: 0.196      # 空闲概率阈值
+\end{lstlisting}
+
+%--------------------------------------------------------------------
+\subsection{遥控UI控制方法}
+
+本项目开发了一个基于Tkinter的图形化遥控界面(teleop\_ui.py),用于在SLAM建图和导航测试过程中手动控制TIAGo机器人。
+
+\subsubsection{UI界面}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{photo/teleop_ui.png}
+\caption{TIAGo遥控UI界面}
+\end{figure}
+
+\subsubsection{控制方式}
+
+UI提供键盘和按钮两种等效的控制方式:
+
+\begin{table}[H]
+\centering
+\caption{遥控按键说明}
+\begin{tabular}{ccp{6cm}}
+\toprule
+\textbf{按键} & \textbf{按钮} & \textbf{功能} \\
+\midrule
+W & W & 加速(线速度+0.1 m/s,最大1.2 m/s) \\
+S & S & 减速/后退(线速度-0.1 m/s,最小-0.6 m/s) \\
+A & A & 左转(角速度1.2 rad/s,松开停止转向) \\
+D & D & 右转(角速度-1.2 rad/s,松开停止转向) \\
+空格 & 停 & 紧急停车(线速度和角速度归零) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{技术实现}
+
+遥控UI的核心技术特点:
+\begin{itemize}
+    \item \textbf{多话题发布}:同时向\texttt{/cmd\_vel}、\texttt{/mobile\_base\_controller/cmd\_vel\_unstamped}和\texttt{/model/tiago/cmd\_vel}发布速度指令,确保兼容不同的仿真配置
+    \item \textbf{持续发送}:以100ms间隔持续发送当前速度指令,保证机器人运动的连续性
+    \item \textbf{渐进式速度控制}:线速度采用步进式调节(每次$\pm$0.1 m/s),便于精细控制
+    \item \textbf{实时状态显示}:界面底部实时显示当前线速度和角速度
+\end{itemize}
+
+%--------------------------------------------------------------------
+\subsection{项目脚本功能说明}
+
+本项目在\texttt{map/}目录下提供了四个Shell脚本,用于启动不同功能的仿真环境。
+
+\subsubsection{launch\_tiago.sh - 基础仿真启动}
+
+\paragraph{功能概述}
+一键启动Gazebo仿真环境并加载TIAGo机器人模型,提供基本的遥控功能。
+
+\paragraph{主要功能}
+\begin{enumerate}
+    \item 启动Gazebo仿真器,加载指定的世界文件
+    \item 在仿真环境中生成TIAGo机器人
+    \item 启动ROS-Gazebo话题桥接
+    \item 启动遥控UI界面(teleop\_ui.py)
+\end{enumerate}
+
+\paragraph{使用方法}
+\begin{lstlisting}[language=bash]
+# 默认加载warehouse世界
+./launch_tiago.sh
+
+# 指定其他世界
+./launch_tiago.sh custom_world
+
+# 无头模式运行
+HEADLESS=1 ./launch_tiago.sh
+
+# 指定机器人初始位置
+TIAGO_X=1.0 TIAGO_Y=2.0 TIAGO_YAW=1.57 ./launch_tiago.sh
+\end{lstlisting}
+
+\paragraph{环境变量}
+\begin{table}[H]
+\centering
+\caption{launch\_tiago.sh 环境变量}
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{变量名} & \textbf{默认值} & \textbf{说明} \\
+\midrule
+WORLD\_NAME & warehouse & Gazebo世界名称 \\
+HEADLESS & 0 & 是否无头运行(0=GUI,1=无头) \\
+TIAGO\_X/Y/Z & 0/0/0.05 & 机器人初始位置 \\
+TIAGO\_YAW & 0 & 机器人初始朝向 \\
+START\_BRIDGE & 1 & 是否启动话题桥接 \\
+START\_UI & 1 & 是否启动遥控UI \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{launch\_tiago\_slam.sh - SLAM建图启动}
+
+\paragraph{功能概述}
+启动完整的SLAM建图环境,包括仿真、传感器数据处理、SLAM算法和可视化。
+
+\paragraph{启动流程}
+\begin{enumerate}
+    \item \textbf{Gazebo仿真}:加载仓库世界和TIAGo机器人
+    \item \textbf{话题桥接}:桥接clock、cmd\_vel、odom、scan、tf等话题
+    \item \textbf{Robot State Publisher}:发布机器人URDF模型的TF变换
+    \item \textbf{静态TF发布}:补充必要的坐标系变换
+    \item \textbf{SLAM Toolbox}:启动同步SLAM节点进行建图
+    \item \textbf{RViz可视化}:显示地图、激光扫描和机器人位姿
+    \item \textbf{遥控UI}:提供键盘控制界面
+\end{enumerate}
+
+\paragraph{使用方法}
+\begin{lstlisting}[language=bash]
+# 启动SLAM建图环境
+./launch_tiago_slam.sh
+
+# 使用WASD键控制机器人移动,RViz中实时显示建图结果
+# 完成后在另一终端运行save_map.sh保存地图
+\end{lstlisting}
+
+\paragraph{生成的RViz配置}
+脚本自动生成优化的RViz配置,显示:
+\begin{itemize}
+    \item 2D栅格地图(/map话题)
+    \item 激光扫描点云(/scan话题)
+    \item 坐标系TF树
+    \item 俯视正交视角
+\end{itemize}
+
+\subsubsection{launch\_tiago\_nav2.sh - Nav2导航启动}
+
+\paragraph{功能概述}
+在已保存的地图上启动完整的Nav2导航堆栈,支持自主导航到目标点。
+
+\paragraph{启动组件}
+\begin{enumerate}
+    \item Gazebo仿真环境
+    \item TIAGo机器人(支持有臂/无臂版本)
+    \item ROS-Gazebo话题桥接
+    \item Robot State Publisher
+    \item 里程计TF发布节点(odom\_to\_tf.py)
+    \item 激光Frame转换器(laser\_frame\_remapper.py)
+    \item Nav2导航堆栈(nav2\_bringup)
+    \item RViz可视化
+    \item 可选:自动路径点跟随
+\end{enumerate}
+
+\paragraph{关键配置文件}
+\begin{itemize}
+    \item \textbf{地图文件}:\texttt{map/nav\_maps/warehouse.yaml}
+    \item \textbf{Nav2参数}:\texttt{tiago\_nav2.yaml}
+    \item \textbf{路径点配置}:\texttt{config/waypoints.yaml}
+\end{itemize}
+
+\paragraph{使用方法}
+\begin{lstlisting}[language=bash]
+# 基本启动
+./launch_tiago_nav2.sh
+
+# 指定地图文件
+MAP_FILE=/path/to/map.yaml ./launch_tiago_nav2.sh
+
+# 自动运行路径点
+RUN_WAYPOINTS=1 ./launch_tiago_nav2.sh
+
+# 使用无臂版TIAGo
+ARM_TYPE=no-arm ./launch_tiago_nav2.sh
+
+# 自定义Nav2参数
+NAV2_PARAMS=/path/to/custom_nav2.yaml ./launch_tiago_nav2.sh
+\end{lstlisting}
+
+\paragraph{环境变量}
+\begin{table}[H]
+\centering
+\caption{launch\_tiago\_nav2.sh 环境变量}
+\begin{tabular}{llp{5cm}}
+\toprule
+\textbf{变量名} & \textbf{默认值} & \textbf{说明} \\
+\midrule
+MAP\_FILE & nav\_maps/warehouse.yaml & 导航地图路径 \\
+NAV2\_PARAMS & tiago\_nav2.yaml & Nav2参数文件 \\
+WORLD\_NAME & warehouse & Gazebo世界名称 \\
+RUN\_RVIZ & 1 & 是否启动RViz \\
+START\_UI & 1 & 是否启动遥控UI \\
+RUN\_WAYPOINTS & 0 & 是否自动发送路径点 \\
+ARM\_TYPE & no-arm & 机械臂类型 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{save\_map.sh - 地图保存}
+
+\paragraph{功能概述}
+保存SLAM建图结果为多种格式,便于后续导航使用。
+
+\paragraph{保存内容}
+\begin{enumerate}
+    \item \textbf{标准导航地图}(PGM + YAML):Nav2 Map Server使用
+    \item \textbf{PNG格式地图}:便于查看和文档使用
+    \item \textbf{SLAM序列化文件}:可用于继续编辑地图
+\end{enumerate}
+
+\paragraph{使用方法}
+\begin{lstlisting}[language=bash]
+# 自动命名保存到默认目录
+./save_map.sh
+
+# 指定地图名称
+./save_map.sh my_warehouse_map
+
+# 指定名称和保存目录
+./save_map.sh my_map /home/user/maps
+\end{lstlisting}
+
+\paragraph{输出示例}
+\begin{lstlisting}
+生成的文件:
+  - my_map.pgm        : 灰度地图图像
+  - my_map.yaml       : 地图元数据
+  - my_map_png.png    : PNG格式地图
+  - my_map_slam.*     : SLAM序列化文件
+\end{lstlisting}
+
+%--------------------------------------------------------------------
+\subsection{系统整体架构}
+
+本节详细介绍仓库管理员系统的整体架构,包括各组件的角色、通信机制以及数据流向。
+
+\subsubsection{系统架构概览}
+
+整个系统由多个相互协作的组件构成,通过ROS 2的话题(Topic)、服务(Service)和动作(Action)机制进行通信:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=0.7cm, align=center, font=\small},
+    bigbox/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=0.8cm, align=center, fill=blue!15, font=\small\bfseries},
+    arrow/.style={->, >=stealth, thick},
+    dasharrow/.style={->, >=stealth, dashed},
+    label/.style={font=\tiny, midway, fill=white, inner sep=1pt}
+]
+    % Gazebo层
+    \node[bigbox, fill=orange!20] (gazebo) at (0,4) {Gazebo Sim};
+    \node[box, fill=orange!10] (world) at (-2.5,2.8) {Warehouse\\World};
+    \node[box, fill=orange!10] (tiago_sim) at (0,2.8) {TIAGo\\Model};
+    \node[box, fill=orange!10] (sensors) at (2.5,2.8) {Sensors\\(LiDAR等)};
+
+    % Bridge
+    \node[bigbox, fill=yellow!30] (bridge) at (0,1.2) {ros\_gz\_bridge};
+
+    % ROS 2层
+    \node[bigbox, fill=green!20] (ros2) at (0,-0.3) {ROS 2 Humble};
+
+    % ROS 2组件
+    \node[box, fill=green!10] (rsp) at (-4,-1.8) {Robot State\\Publisher};
+    \node[box, fill=green!10] (tf) at (-1.5,-1.8) {TF2};
+    \node[box, fill=green!10] (nav2) at (1.5,-1.8) {Nav2\\Stack};
+    \node[box, fill=green!10] (slam) at (4,-1.8) {SLAM\\Toolbox};
+
+    % 用户接口
+    \node[box, fill=purple!15] (rviz) at (-2.5,-3.5) {RViz2};
+    \node[box, fill=purple!15] (teleop) at (0,-3.5) {Teleop\\UI};
+    \node[box, fill=purple!15] (waypoint) at (2.5,-3.5) {Waypoint\\Follower};
+
+    % 连接线
+    \draw[arrow] (gazebo) -- (world);
+    \draw[arrow] (gazebo) -- (tiago_sim);
+    \draw[arrow] (gazebo) -- (sensors);
+    \draw[arrow] (world) -- (bridge);
+    \draw[arrow] (tiago_sim) -- (bridge);
+    \draw[arrow] (sensors) -- (bridge);
+    \draw[arrow] (bridge) -- (ros2);
+    \draw[arrow] (ros2) -- (rsp);
+    \draw[arrow] (ros2) -- (tf);
+    \draw[arrow] (ros2) -- (nav2);
+    \draw[arrow] (ros2) -- (slam);
+    \draw[arrow] (rsp) -- (rviz);
+    \draw[arrow] (nav2) -- (rviz);
+    \draw[arrow] (slam) -- (rviz);
+    \draw[arrow] (teleop) -- (ros2);
+    \draw[arrow] (waypoint) -- (nav2);
+\end{tikzpicture}
+\caption{系统整体架构图}
+\end{figure}
+
+\subsubsection{Gazebo仿真环境}
+
+Gazebo Sim(原Ignition Gazebo)作为物理仿真引擎,承担以下职责:
+
+\begin{itemize}
+    \item \textbf{世界仿真}:加载warehouse.sdf定义的仓库环境,包括地面、货架、护栏等静态物体
+    \item \textbf{机器人仿真}:加载TIAGo的SDF模型,模拟其物理特性(质量、惯性、碰撞)
+    \item \textbf{传感器仿真}:模拟激光雷达扫描,生成符合物理规律的传感器数据
+    \item \textbf{运动仿真}:根据接收的速度指令,计算机器人的运动轨迹和位姿变化
+\end{itemize}
+
+Gazebo内部使用自己的消息系统(ignition.msgs),与ROS 2的消息系统不同,因此需要桥接。
+
+\subsubsection{ros\_gz\_bridge通信桥接}
+
+ros\_gz\_bridge是连接Gazebo和ROS 2的关键组件,负责双向消息转换:
+
+\begin{table}[H]
+\centering
+\caption{主要桥接话题}
+\begin{tabular}{llll}
+\toprule
+\textbf{ROS 2话题} & \textbf{Gazebo话题} & \textbf{方向} & \textbf{用途} \\
+\midrule
+/clock & /clock & Gz$\to$ROS & 仿真时间同步 \\
+/cmd\_vel & /model/tiago/cmd\_vel & ROS$\to$Gz & 速度控制指令 \\
+/odom & /odom & Gz$\to$ROS & 里程计数据 \\
+/scan & /scan & Gz$\to$ROS & 激光扫描数据 \\
+/tf & /tf & Gz$\to$ROS & 坐标变换 \\
+/joint\_states & /joint\_states & Gz$\to$ROS & 关节状态 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+桥接配置示例:
+\begin{lstlisting}[language=bash]
+ros2 run ros_gz_bridge parameter_bridge \
+  /clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock \
+  /cmd_vel@geometry_msgs/msg/Twist]ignition.msgs.Twist \
+  /scan@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan
+\end{lstlisting}
+
+其中\texttt{[}表示Gazebo到ROS的单向桥接,\texttt{]}表示ROS到Gazebo的单向桥接,\texttt{@}分隔ROS消息类型和Gazebo消息类型。
+
+\subsubsection{ROS 2通信机制}
+
+系统中各节点通过以下ROS 2通信机制协作:
+
+\paragraph{话题通信(Topic)}
+用于持续的数据流传输:
+\begin{itemize}
+    \item \texttt{/scan}:激光扫描数据(10-20Hz)
+    \item \texttt{/odom}:里程计数据(50Hz)
+    \item \texttt{/cmd\_vel}:速度指令(20Hz)
+    \item \texttt{/map}:栅格地图(按需更新)
+    \item \texttt{/tf}:坐标变换(高频更新)
+\end{itemize}
+
+\paragraph{服务通信(Service)}
+用于请求-响应模式:
+\begin{itemize}
+    \item \texttt{/map\_server/load\_map}:加载地图
+    \item \texttt{/slam\_toolbox/serialize\_map}:保存SLAM地图
+    \item \texttt{/global\_costmap/clear\_entirely\_global\_costmap}:清除代价地图
+\end{itemize}
+
+\paragraph{动作通信(Action)}
+用于长时间运行的任务:
+\begin{itemize}
+    \item \texttt{/navigate\_to\_pose}:导航到目标点
+    \item \texttt{/follow\_waypoints}:跟随路径点序列
+    \item \texttt{/compute\_path\_to\_pose}:计算路径
+\end{itemize}
+
+\subsubsection{TF坐标变换系统}
+
+TF2负责维护各坐标系之间的变换关系,是导航系统的核心:
+
+\begin{lstlisting}
+map (全局固定坐标系)
+ |-- [AMCL发布] map->odom变换 (定位校正)
+ |
+ +-> odom (里程计坐标系)
+      |-- [odom_to_tf.py发布] odom->base_footprint变换
+      |
+      +-> base_footprint (机器人底盘投影)
+           |-- [robot_state_publisher发布]
+           |
+           +-> base_link -> base_laser_link (激光雷达)
+                        -> torso_lift_link -> ...
+\end{lstlisting}
+
+各变换的发布者:
+\begin{itemize}
+    \item \textbf{map$\to$odom}:由AMCL根据定位结果发布,校正里程计漂移
+    \item \textbf{odom$\to$base\_footprint}:由odom\_to\_tf.py从/odom话题提取并发布
+    \item \textbf{base\_footprint$\to$其他}:由robot\_state\_publisher根据URDF发布
+\end{itemize}
+
+\subsubsection{Nav2导航数据流}
+
+Nav2导航过程中的数据流向:
+
+\begin{enumerate}
+    \item \textbf{感知输入}:
+    \begin{itemize}
+        \item 激光扫描数据(/scan\_remapped)$\to$代价地图更新
+        \item TF变换$\to$机器人位姿获取
+    \end{itemize}
+
+    \item \textbf{定位}:
+    \begin{itemize}
+        \item AMCL接收/scan\_remapped和/map
+        \item 输出map$\to$odom变换
+    \end{itemize}
+
+    \item \textbf{路径规划}:
+    \begin{itemize}
+        \item Planner Server接收目标点和全局代价地图
+        \item 输出全局路径(/plan)
+    \end{itemize}
+
+    \item \textbf{路径跟踪}:
+    \begin{itemize}
+        \item Controller Server接收全局路径和局部代价地图
+        \item 输出速度指令(/cmd\_vel)
+    \end{itemize}
+
+    \item \textbf{执行}:
+    \begin{itemize}
+        \item 速度指令通过Bridge传递给Gazebo
+        \item Gazebo更新机器人位姿
+        \item 新的传感器数据反馈回ROS 2
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{RViz可视化}
+
+RViz2作为可视化工具,订阅以下数据进行显示:
+
+\begin{itemize}
+    \item \textbf{/map}:显示2D栅格地图
+    \item \textbf{/scan}:显示激光扫描点云
+    \item \textbf{/tf}:显示坐标系关系
+    \item \textbf{/plan}:显示全局规划路径
+    \item \textbf{/local\_plan}:显示局部规划路径
+    \item \textbf{/global\_costmap/costmap}:显示全局代价地图
+    \item \textbf{/local\_costmap/costmap}:显示局部代价地图
+\end{itemize}
+
+同时RViz提供交互功能:
+\begin{itemize}
+    \item \textbf{2D Pose Estimate}:发布/initialpose设置初始位姿
+    \item \textbf{2D Goal Pose}:发布/goal\_pose设置导航目标
+\end{itemize}
+
+\subsubsection{系统启动顺序}
+
+为确保系统正常运行,各组件需按以下顺序启动:
+
+\begin{enumerate}
+    \item \textbf{Gazebo仿真}:加载世界和机器人模型
+    \item \textbf{ros\_gz\_bridge}:建立Gazebo-ROS通信
+    \item \textbf{robot\_state\_publisher}:发布机器人TF
+    \item \textbf{静态TF/odom\_to\_tf}:补充坐标变换
+    \item \textbf{SLAM或Map Server}:提供地图
+    \item \textbf{Nav2 Stack}:启动导航服务
+    \item \textbf{RViz}:可视化界面
+    \item \textbf{Teleop UI}:用户控制接口
+\end{enumerate}
+
+这个启动顺序在launch\_tiago\_nav2.sh脚本中已经正确实现。
+
+%--------------------------------------------------------------------
+\subsection{本章小结}
+
+本章详细介绍了仓库管理员项目的技术基础:
+
+\begin{enumerate}
+    \item \textbf{Nav2导航框架}:包括行为树导航、全局规划、局部控制、代价地图、定位系统等核心模块,为机器人自主导航提供完整解决方案。
+
+    \item \textbf{TIAGo机器人}:介绍了其硬件组成(PMB2底盘、激光雷达、深度相机等)、软件架构和坐标系结构,以及在本项目中的使用方式。
+
+    \item \textbf{仿真环境}:描述了基于Gazebo的仓库仿真环境构建,以及使用SLAM Toolbox进行地图构建的流程。
+
+    \item \textbf{遥控UI}:介绍了图形化遥控界面的使用方法和技术实现。
+
+    \item \textbf{项目脚本}:说明了四个核心脚本的功能和使用方法,涵盖从基础仿真到SLAM建图再到Nav2导航的完整工作流程。
+
+    \item \textbf{系统架构}:详细阐述了Gazebo仿真、ros\_gz\_bridge桥接、ROS 2通信、TF坐标系统、Nav2数据流和RViz可视化之间的协作关系。
+\end{enumerate}
+
+这些技术基础为后续章节中的导航参数优化、控制器对比实验和自定义功能开发奠定了基础。
+
+
+\newpage
+%====================================================================
+% 后续章节占位
+%====================================================================
+\section{Nav2导航参数优化}
+% TODO: 第二部分内容
+
+\section{控制器对比分析}
+% TODO: 第三部分内容 - RPP、DWB、MPPI对比
+
+\section{行为树子任务设计}
+% TODO: 第四部分内容 - 精确停车BT设计
+
+\section{自定义控制器插件开发}
+% TODO: 第五部分内容 - Stanley/PID Pure Pursuit实现
+
+\section{总结与展望}
+% TODO: 总结部分
+
+\end{document}

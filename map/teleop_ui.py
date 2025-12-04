@@ -153,9 +153,14 @@ class TeleopUI:
             pass
         if self._repeat_job:
             self.master.after_cancel(self._repeat_job)
+            self._repeat_job = None
         if self.node is not None:
             self.node.destroy_node()
-        rclpy.shutdown()
+            self.node = None
+        if rclpy.ok():
+            rclpy.shutdown()
+        # 先退出循环再销毁窗口，确保进程结束
+        self.master.quit()
         self.master.destroy()
 
 

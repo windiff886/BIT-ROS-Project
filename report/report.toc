@@ -1,0 +1,76 @@
+\contentsline {section}{\numberline {1}系统概述与环境介绍}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Nav2导航框架详解}{2}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Nav2概述}{2}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Nav2系统架构}{2}{subsubsection.1.1.2}%
+\contentsline {paragraph}{1. 行为树导航器(BT Navigator)}{2}{figure.caption.1}%
+\contentsline {paragraph}{2. 全局路径规划器(Planner Server)}{2}{figure.caption.1}%
+\contentsline {paragraph}{3. 局部控制器(Controller Server)}{3}{lstnumber.-1.8}%
+\contentsline {paragraph}{4. 代价地图(Costmap)}{3}{lstnumber.-2.2}%
+\contentsline {paragraph}{5. 定位系统(AMCL)}{3}{lstnumber.-3.4}%
+\contentsline {paragraph}{6. 恢复行为(Behavior Server)}{4}{lstnumber.-4.6}%
+\contentsline {subsection}{\numberline {1.2}TIAGo机器人详解}{4}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}TIAGo机器人概述}{4}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}TIAGo硬件组成}{4}{subsubsection.1.2.2}%
+\contentsline {paragraph}{1. 移动底盘(PMB2 Base)}{4}{subsubsection.1.2.2}%
+\contentsline {paragraph}{2. 激光雷达(LiDAR)}{4}{equation.1.1}%
+\contentsline {paragraph}{3. RGB-D相机}{4}{equation.1.1}%
+\contentsline {paragraph}{4. 机械臂(可选)}{5}{equation.1.1}%
+\contentsline {subsubsection}{\numberline {1.2.3}TIAGo软件架构}{5}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.4}TIAGo坐标系(TF Tree)}{5}{subsubsection.1.2.4}%
+\contentsline {subsubsection}{\numberline {1.2.5}在本项目中使用TIAGo}{5}{subsubsection.1.2.5}%
+\contentsline {paragraph}{1. 模型加载}{5}{subsubsection.1.2.5}%
+\contentsline {paragraph}{2. 话题桥接}{5}{lstnumber.-7.4}%
+\contentsline {paragraph}{3. 控制接口}{6}{lstnumber.-8.5}%
+\contentsline {subsection}{\numberline {1.3}仿真环境与地图构建}{6}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}仓库仿真环境}{6}{subsubsection.1.3.1}%
+\contentsline {paragraph}{环境构成}{6}{lstnumber.-9.1}%
+\contentsline {paragraph}{物理引擎配置}{6}{table.caption.4}%
+\contentsline {subsubsection}{\numberline {1.3.2}SLAM建图过程}{6}{subsubsection.1.3.2}%
+\contentsline {paragraph}{SLAM Toolbox简介}{6}{subsubsection.1.3.2}%
+\contentsline {paragraph}{建图流程}{6}{subsubsection.1.3.2}%
+\contentsline {paragraph}{SLAM配置参数}{6}{Item.8}%
+\contentsline {paragraph}{地图文件格式}{6}{lstnumber.-11.11}%
+\contentsline {subsection}{\numberline {1.4}遥控UI控制方法}{7}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}UI界面}{7}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}控制方式}{7}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}技术实现}{7}{subsubsection.1.4.3}%
+\contentsline {subsection}{\numberline {1.5}项目脚本功能说明}{8}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}launch\_tiago.sh - 基础仿真启动}{8}{subsubsection.1.5.1}%
+\contentsline {paragraph}{功能概述}{8}{subsubsection.1.5.1}%
+\contentsline {paragraph}{主要功能}{8}{subsubsection.1.5.1}%
+\contentsline {paragraph}{使用方法}{8}{Item.12}%
+\contentsline {paragraph}{环境变量}{8}{lstnumber.-13.11}%
+\contentsline {subsubsection}{\numberline {1.5.2}launch\_tiago\_slam.sh - SLAM建图启动}{8}{subsubsection.1.5.2}%
+\contentsline {paragraph}{功能概述}{8}{subsubsection.1.5.2}%
+\contentsline {paragraph}{启动流程}{8}{subsubsection.1.5.2}%
+\contentsline {paragraph}{使用方法}{8}{Item.19}%
+\contentsline {paragraph}{生成的RViz配置}{8}{lstnumber.-14.5}%
+\contentsline {subsubsection}{\numberline {1.5.3}launch\_tiago\_nav2.sh - Nav2导航启动}{9}{subsubsection.1.5.3}%
+\contentsline {paragraph}{功能概述}{9}{subsubsection.1.5.3}%
+\contentsline {paragraph}{启动组件}{9}{subsubsection.1.5.3}%
+\contentsline {paragraph}{关键配置文件}{9}{Item.28}%
+\contentsline {paragraph}{使用方法}{9}{Item.28}%
+\contentsline {paragraph}{环境变量}{9}{lstnumber.-15.14}%
+\contentsline {subsubsection}{\numberline {1.5.4}save\_map.sh - 地图保存}{9}{subsubsection.1.5.4}%
+\contentsline {paragraph}{功能概述}{9}{subsubsection.1.5.4}%
+\contentsline {paragraph}{保存内容}{9}{subsubsection.1.5.4}%
+\contentsline {paragraph}{使用方法}{9}{Item.31}%
+\contentsline {paragraph}{输出示例}{10}{lstnumber.-16.8}%
+\contentsline {subsection}{\numberline {1.6}系统整体架构}{10}{subsection.1.6}%
+\contentsline {subsubsection}{\numberline {1.6.1}系统架构概览}{10}{subsubsection.1.6.1}%
+\contentsline {subsubsection}{\numberline {1.6.2}Gazebo仿真环境}{10}{subsubsection.1.6.2}%
+\contentsline {subsubsection}{\numberline {1.6.3}ros\_gz\_bridge通信桥接}{10}{subsubsection.1.6.3}%
+\contentsline {subsubsection}{\numberline {1.6.4}ROS 2通信机制}{11}{subsubsection.1.6.4}%
+\contentsline {paragraph}{话题通信(Topic)}{11}{subsubsection.1.6.4}%
+\contentsline {paragraph}{服务通信(Service)}{11}{subsubsection.1.6.4}%
+\contentsline {paragraph}{动作通信(Action)}{11}{subsubsection.1.6.4}%
+\contentsline {subsubsection}{\numberline {1.6.5}TF坐标变换系统}{11}{subsubsection.1.6.5}%
+\contentsline {subsubsection}{\numberline {1.6.6}Nav2导航数据流}{11}{subsubsection.1.6.6}%
+\contentsline {subsubsection}{\numberline {1.6.7}RViz可视化}{12}{subsubsection.1.6.7}%
+\contentsline {subsubsection}{\numberline {1.6.8}系统启动顺序}{12}{subsubsection.1.6.8}%
+\contentsline {subsection}{\numberline {1.7}本章小结}{12}{subsection.1.7}%
+\contentsline {section}{\numberline {2}Nav2导航参数优化}{13}{section.2}%
+\contentsline {section}{\numberline {3}控制器对比分析}{13}{section.3}%
+\contentsline {section}{\numberline {4}行为树子任务设计}{13}{section.4}%
+\contentsline {section}{\numberline {5}自定义控制器插件开发}{13}{section.5}%
+\contentsline {section}{\numberline {6}总结与展望}{13}{section.6}%
