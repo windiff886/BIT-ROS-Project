@@ -1044,6 +1044,7 @@
       <child_frame_id>base_footprint</child_frame_id>
       <publish_odom>true</publish_odom>
       <publish_odom_tf>true</publish_odom_tf>
+      <tf_topic>/tf</tf_topic>
     </plugin>
 
     <!-- 关节状态发布插件 -->

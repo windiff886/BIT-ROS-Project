@@ -57,22 +57,46 @@ RESOURCE_DIRS=(
   "${ROOT_DIR}/robot/pal_hey5/pal_hey5_description"
 )
 
-# 处理参数合并
+# 处理参数合并（支持参数配置和控制器配置的多层合并）
+MERGED_PARAMS="/tmp/nav2_merged_${TEST_NAME}.yaml"
+NEED_MERGE=0
+
+# 第一层合并：基础参数 + 参数配置覆盖
 if [ -n "${NAV2_OVERRIDE_PARAMS}" ] && [ -f "${NAV2_OVERRIDE_PARAMS}" ]; then
   echo "[test] 合并 Nav2 参数..."
   echo "[test]   基础: ${NAV2_BASE_PARAMS}"
-  echo "[test]   覆盖: ${NAV2_OVERRIDE_PARAMS}"
+  echo "[test]   参数覆盖: ${NAV2_OVERRIDE_PARAMS}"
   
-  MERGED_PARAMS="/tmp/nav2_merged_${TEST_NAME}.yaml"
   python3 "${ROOT_DIR}/src/merge_nav2_params.py" \
     --base "${NAV2_BASE_PARAMS}" \
     --override "${NAV2_OVERRIDE_PARAMS}" \
     --output "${MERGED_PARAMS}"
   
-  NAV2_PARAMS="${MERGED_PARAMS}"
-  echo "[test]   输出: ${NAV2_PARAMS}"
+  CURRENT_PARAMS="${MERGED_PARAMS}"
+  NEED_MERGE=1
 else
-  NAV2_PARAMS="${NAV2_BASE_PARAMS}"
+  CURRENT_PARAMS="${NAV2_BASE_PARAMS}"
+fi
+
+# 第二层合并：+ 控制器配置覆盖
+NAV2_CONTROLLER_PARAMS="${NAV2_CONTROLLER_PARAMS:-}"
+if [ -n "${NAV2_CONTROLLER_PARAMS}" ] && [ -f "${NAV2_CONTROLLER_PARAMS}" ]; then
+  echo "[test]   控制器配置: ${NAV2_CONTROLLER_PARAMS}"
+  
+  MERGED_WITH_CTRL="/tmp/nav2_merged_ctrl_${TEST_NAME}.yaml"
+  python3 "${ROOT_DIR}/src/merge_nav2_params.py" \
+    --base "${CURRENT_PARAMS}" \
+    --override "${NAV2_CONTROLLER_PARAMS}" \
+    --output "${MERGED_WITH_CTRL}"
+  
+  NAV2_PARAMS="${MERGED_WITH_CTRL}"
+  NEED_MERGE=1
+else
+  NAV2_PARAMS="${CURRENT_PARAMS}"
+fi
+
+if [ ${NEED_MERGE} -eq 1 ]; then
+  echo "[test]   最终输出: ${NAV2_PARAMS}"
 fi
 
 echo ""
@@ -82,6 +106,9 @@ echo "=============================================="
 echo "  测试名称: ${TEST_NAME}"
 echo "  Waypoints: ${WAYPOINT_CFG}"
 echo "  Nav2参数: ${NAV2_PARAMS}"
+if [ -n "${NAV2_CONTROLLER_PARAMS}" ]; then
+echo "  控制器: ${NAV2_CONTROLLER_PARAMS}"
+fi
 echo "  输出目录: ${OUTPUT_DIR}"
 echo "  世界: ${WORLD_NAME}"
 echo "  地图: ${MAP_FILE}"
