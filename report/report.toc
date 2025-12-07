@@ -1,90 +1,63 @@
 \contentsline {section}{\numberline {1}系统概述与环境介绍}{3}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Nav2导航框架详解}{3}{subsection.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.1}Nav2概述}{3}{subsubsection.1.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.2}Nav2系统架构}{3}{subsubsection.1.1.2}%
-\contentsline {paragraph}{1. 行为树导航器(BT Navigator)}{3}{figure.caption.1}%
-\contentsline {paragraph}{2. 全局路径规划器(Planner Server)}{3}{figure.caption.1}%
-\contentsline {paragraph}{3. 局部控制器(Controller Server)}{4}{lstnumber.-1.8}%
-\contentsline {paragraph}{4. 代价地图(Costmap)}{4}{lstnumber.-2.2}%
-\contentsline {paragraph}{5. 定位系统(AMCL)}{4}{lstnumber.-3.4}%
-\contentsline {paragraph}{6. 恢复行为(Behavior Server)}{5}{lstnumber.-4.6}%
-\contentsline {subsection}{\numberline {1.2}TIAGo机器人详解}{5}{subsection.1.2}%
-\contentsline {subsubsection}{\numberline {1.2.1}TIAGo机器人概述}{5}{subsubsection.1.2.1}%
-\contentsline {subsubsection}{\numberline {1.2.2}TIAGo硬件组成}{5}{subsubsection.1.2.2}%
-\contentsline {paragraph}{1. 移动底盘(PMB2 Base)}{5}{subsubsection.1.2.2}%
-\contentsline {paragraph}{2. 激光雷达(LiDAR)}{5}{equation.1.1}%
-\contentsline {paragraph}{3. RGB-D相机}{5}{equation.1.1}%
-\contentsline {paragraph}{4. 机械臂(可选)}{6}{equation.1.1}%
-\contentsline {subsubsection}{\numberline {1.2.3}TIAGo软件架构}{6}{subsubsection.1.2.3}%
-\contentsline {subsubsection}{\numberline {1.2.4}TIAGo坐标系(TF Tree)}{6}{subsubsection.1.2.4}%
-\contentsline {subsubsection}{\numberline {1.2.5}在本项目中使用TIAGo}{6}{subsubsection.1.2.5}%
-\contentsline {paragraph}{1. 模型加载}{6}{subsubsection.1.2.5}%
-\contentsline {paragraph}{2. 话题桥接}{6}{lstnumber.-7.4}%
-\contentsline {paragraph}{3. 控制接口}{7}{lstnumber.-8.5}%
-\contentsline {subsection}{\numberline {1.3}仿真环境与地图构建}{7}{subsection.1.3}%
-\contentsline {subsubsection}{\numberline {1.3.1}仓库仿真环境}{7}{subsubsection.1.3.1}%
-\contentsline {paragraph}{环境构成}{7}{lstnumber.-9.1}%
-\contentsline {paragraph}{物理引擎配置}{7}{table.caption.4}%
-\contentsline {subsubsection}{\numberline {1.3.2}SLAM建图过程}{7}{subsubsection.1.3.2}%
-\contentsline {paragraph}{SLAM Toolbox简介}{7}{subsubsection.1.3.2}%
-\contentsline {paragraph}{建图流程}{7}{subsubsection.1.3.2}%
-\contentsline {paragraph}{SLAM配置参数}{7}{Item.8}%
-\contentsline {paragraph}{地图文件格式}{7}{lstnumber.-11.11}%
-\contentsline {subsection}{\numberline {1.4}遥控UI控制方法}{8}{subsection.1.4}%
-\contentsline {subsubsection}{\numberline {1.4.1}UI界面}{8}{subsubsection.1.4.1}%
-\contentsline {subsubsection}{\numberline {1.4.2}控制方式}{8}{subsubsection.1.4.2}%
-\contentsline {subsubsection}{\numberline {1.4.3}技术实现}{8}{subsubsection.1.4.3}%
-\contentsline {subsection}{\numberline {1.5}项目脚本功能说明}{9}{subsection.1.5}%
-\contentsline {subsubsection}{\numberline {1.5.1}launch\_tiago.sh - 基础仿真启动}{9}{subsubsection.1.5.1}%
-\contentsline {paragraph}{功能概述}{9}{subsubsection.1.5.1}%
-\contentsline {paragraph}{主要功能}{9}{subsubsection.1.5.1}%
-\contentsline {paragraph}{使用方法}{9}{Item.12}%
-\contentsline {paragraph}{环境变量}{9}{lstnumber.-13.11}%
-\contentsline {subsubsection}{\numberline {1.5.2}launch\_tiago\_slam.sh - SLAM建图启动}{9}{subsubsection.1.5.2}%
-\contentsline {paragraph}{功能概述}{9}{subsubsection.1.5.2}%
-\contentsline {paragraph}{启动流程}{9}{subsubsection.1.5.2}%
-\contentsline {paragraph}{使用方法}{9}{Item.19}%
-\contentsline {paragraph}{生成的RViz配置}{9}{lstnumber.-14.5}%
-\contentsline {subsubsection}{\numberline {1.5.3}launch\_tiago\_nav2.sh - Nav2导航启动}{10}{subsubsection.1.5.3}%
-\contentsline {paragraph}{功能概述}{10}{subsubsection.1.5.3}%
-\contentsline {paragraph}{启动组件}{10}{subsubsection.1.5.3}%
-\contentsline {paragraph}{关键配置文件}{10}{Item.28}%
-\contentsline {paragraph}{使用方法}{10}{Item.28}%
-\contentsline {paragraph}{环境变量}{10}{lstnumber.-15.14}%
-\contentsline {subsubsection}{\numberline {1.5.4}save\_map.sh - 地图保存}{10}{subsubsection.1.5.4}%
-\contentsline {paragraph}{功能概述}{10}{subsubsection.1.5.4}%
-\contentsline {paragraph}{保存内容}{10}{subsubsection.1.5.4}%
-\contentsline {paragraph}{使用方法}{10}{Item.31}%
-\contentsline {paragraph}{输出示例}{11}{lstnumber.-16.8}%
-\contentsline {subsection}{\numberline {1.6}系统整体架构}{11}{subsection.1.6}%
-\contentsline {subsubsection}{\numberline {1.6.1}系统架构概览}{11}{subsubsection.1.6.1}%
-\contentsline {subsubsection}{\numberline {1.6.2}Gazebo仿真环境}{11}{subsubsection.1.6.2}%
-\contentsline {subsubsection}{\numberline {1.6.3}ros\_gz\_bridge通信桥接}{11}{subsubsection.1.6.3}%
-\contentsline {subsubsection}{\numberline {1.6.4}ROS 2通信机制}{12}{subsubsection.1.6.4}%
-\contentsline {paragraph}{话题通信(Topic)}{12}{subsubsection.1.6.4}%
-\contentsline {paragraph}{服务通信(Service)}{12}{subsubsection.1.6.4}%
-\contentsline {paragraph}{动作通信(Action)}{12}{subsubsection.1.6.4}%
-\contentsline {subsubsection}{\numberline {1.6.5}TF坐标变换系统}{12}{subsubsection.1.6.5}%
-\contentsline {subsubsection}{\numberline {1.6.6}Nav2导航数据流}{12}{subsubsection.1.6.6}%
-\contentsline {subsubsection}{\numberline {1.6.7}RViz可视化}{13}{subsubsection.1.6.7}%
-\contentsline {subsubsection}{\numberline {1.6.8}系统启动顺序}{13}{subsubsection.1.6.8}%
-\contentsline {subsection}{\numberline {1.7}本章小结}{13}{subsection.1.7}%
-\contentsline {section}{\numberline {2}Nav2导航参数优化}{14}{section.2}%
-\contentsline {subsection}{\numberline {2.1}测试策略与实验设计}{14}{subsection.2.1}%
-\contentsline {subsubsection}{\numberline {2.1.1}测试框架概述}{14}{subsubsection.2.1.1}%
-\contentsline {subsubsection}{\numberline {2.1.2}参数化测试策略}{14}{subsubsection.2.1.2}%
-\contentsline {subsubsection}{\numberline {2.1.3}单次测试执行流程}{14}{subsubsection.2.1.3}%
-\contentsline {subsubsection}{\numberline {2.1.4}测试控制参数}{15}{subsubsection.2.1.4}%
-\contentsline {subsubsection}{\numberline {2.1.5}容错与进程管理}{15}{subsubsection.2.1.5}%
-\contentsline {paragraph}{1. 信号捕获与优雅退出}{15}{subsubsection.2.1.5}%
-\contentsline {paragraph}{2. 进程隔离}{16}{lstnumber.-23.1}%
-\contentsline {paragraph}{3. 状态记录与断点续测}{16}{Item.53}%
-\contentsline {paragraph}{4. 退出码传递}{16}{lstnumber.-24.12}%
-\contentsline {subsubsection}{\numberline {2.1.6}输出与结果分析}{16}{subsubsection.2.1.6}%
-\contentsline {paragraph}{批量测试摘要}{16}{lstnumber.-25.10}%
-\contentsline {paragraph}{自动对比报告生成}{16}{lstnumber.-26.15}%
-\contentsline {subsubsection}{\numberline {2.1.7}测试设计原则}{17}{subsubsection.2.1.7}%
-\contentsline {section}{\numberline {3}控制器对比分析}{17}{section.3}%
-\contentsline {section}{\numberline {4}行为树子任务设计}{17}{section.4}%
-\contentsline {section}{\numberline {5}自定义控制器插件开发}{17}{section.5}%
-\contentsline {section}{\numberline {6}总结与展望}{17}{section.6}%
+\contentsline {subsection}{\numberline {1.1}Nav2导航框架}{3}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}核心组件}{3}{subsubsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.2}TIAGo机器人平台}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}硬件组成与运动学模型}{4}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}坐标系与软件架构}{4}{subsubsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.3}仿真环境与工具链}{4}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}仓库仿真环境与SLAM建图}{4}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}遥控UI与项目脚本}{4}{subsubsection.1.3.2}%
+\contentsline {paragraph}{基础仿真与建图脚本}{5}{figure.caption.3}%
+\contentsline {paragraph}{导航与自动化测试脚本}{5}{figure.caption.3}%
+\contentsline {subsection}{\numberline {1.4}系统整体架构}{5}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}仿真与通信层}{6}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}ROS 2通信机制与TF系统}{6}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}Nav2导航数据流与系统启动}{6}{subsubsection.1.4.3}%
+\contentsline {section}{\numberline {2}Nav2导航参数优化}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}实验设计与测试框架}{7}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}实验方法与测试路线}{7}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}评价指标体系}{7}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}自动化测试框架}{7}{subsubsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.2}参数配置与理论分析}{8}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}测试配置设计}{8}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}参数影响机理}{8}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}实验结果与分析}{9}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}总体性能对比}{9}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}结果分析与关键发现}{9}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}配置推荐}{9}{subsubsection.2.3.3}%
+\contentsline {section}{\numberline {3}控制器对比分析}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}控制器算法原理}{9}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}DWB控制器(Dynamic Window Approach)}{9}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}RPP控制器(Regulated Pure Pursuit)}{10}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}MPPI控制器(Model Predictive Path Integral)}{10}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Stanley控制器(自定义实现)}{10}{subsubsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.2}Stanley控制器插件开发}{10}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}插件架构与接口实现}{10}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}核心算法实现}{10}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}插件注册与编译}{10}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}关键参数说明与设计决策}{11}{subsubsection.3.2.4}%
+\contentsline {paragraph}{控制算法参数设计决策}{11}{table.caption.9}%
+\contentsline {paragraph}{速度限制参数设计决策}{11}{table.caption.9}%
+\contentsline {paragraph}{目标判定参数设计决策}{11}{table.caption.9}%
+\contentsline {paragraph}{参数调优建议}{12}{table.caption.9}%
+\contentsline {subsection}{\numberline {3.3}控制器对比测试}{12}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}测试配置}{12}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}测试结果}{12}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}图表化分析}{12}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}结果分析}{13}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}控制器选型建议}{13}{subsubsection.3.3.5}%
+\contentsline {section}{\numberline {4}行为树子任务设计}{13}{section.4}%
+\contentsline {subsection}{\numberline {4.1}行为树基础}{14}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}行为树概述}{14}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Blackboard与动态参数传递}{14}{subsubsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.2}动态多控制器行为树设计}{14}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}三种控制器配置}{14}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}行为树整体结构}{14}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}阶段一:快速接近(FollowPath控制器)}{15}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}阶段二:慢速精调(SlowFollowPath控制器)}{15}{subsubsection.4.2.4}%
+\contentsline {subsubsection}{\numberline {4.2.5}阶段三:精确对齐(StanleyFollowPath控制器)}{15}{subsubsection.4.2.5}%
+\contentsline {subsubsection}{\numberline {4.2.6}动态控制器切换机制总结}{16}{subsubsection.4.2.6}%
+\contentsline {subsection}{\numberline {4.3}行为树配置与部署}{16}{subsection.4.3}%
+\contentsline {section}{\numberline {5}总结与展望}{17}{section.5}%
+\contentsline {subsection}{\numberline {5.1}主要结论}{17}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}未来展望}{17}{subsection.5.2}%

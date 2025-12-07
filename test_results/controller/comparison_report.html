@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nav2 参数对比报告</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .summary-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .best {
+            background-color: #c8e6c9 !important;
+            font-weight: bold;
+        }
+        .worst {
+            background-color: #ffcdd2 !important;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .bar {
+            height: 30px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        .metric-card {
+            display: inline-block;
+            width: 200px;
+            padding: 15px;
+            margin: 10px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .recommendation {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .recommendation h3 {
+            color: white;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Nav2 参数对比报告</h1>
+    <p>生成时间: 2025-12-07 15:04:05</p>
+
+    <div class="recommendation">
+        <h3>📊 最优配置推荐</h3>
+        <p><strong>最快速度:</strong> baseline_mppi (平均速度: 0.000 m/s)</p>
+        <p><strong>最高成功率:</strong> baseline_mppi (成功率: 0.0%)</p>
+        <p><strong>综合最优:</strong> baseline_mppi (效率评分: 0.000)</p>
+    </div>
+
+    <div class="summary-box">
+        <h2>📈 测试概览</h2>
+        <div class="metric-card">
+            <div class="metric-value">4</div>
+            <div class="metric-label">测试配置数</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-value">0 / 0</div>
+            <div class="metric-label">总到达/总目标点</div>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <h2>📋 详细对比</h2>
+        <table>
+            <tr>
+                <th>配置名称</th>
+                <th>总时间 (s)</th>
+                <th>总距离 (m)</th>
+                <th>平均速度 (m/s)</th>
+                <th>成功率 (%)</th>
+                <th>到达点数</th>
+                <th>效率评分</th>
+            </tr>
+
+            <tr class="best">
+                <td>baseline_mppi</td>
+                <td>0.00</td>
+                <td>0.00</td>
+                <td>0.000</td>
+                <td>0.0</td>
+                <td>0 / 0</td>
+                <td>0.000</td>
+            </tr>
+
+            <tr class="">
+                <td>baseline_stanley</td>
+                <td>0.00</td>
+                <td>0.00</td>
+                <td>0.000</td>
+                <td>0.0</td>
+                <td>0 / 0</td>
+                <td>0.000</td>
+            </tr>
+
+            <tr class="">
+                <td>baseline_rpp</td>
+                <td>0.00</td>
+                <td>0.00</td>
+                <td>0.000</td>
+                <td>0.0</td>
+                <td>0 / 0</td>
+                <td>0.000</td>
+            </tr>
+
+            <tr class="worst">
+                <td>baseline_dwb</td>
+                <td>0.00</td>
+                <td>0.00</td>
+                <td>0.000</td>
+                <td>0.0</td>
+                <td>0 / 0</td>
+                <td>0.000</td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div class="chart-container">
+        <h2>🚀 平均速度对比</h2>
+
+        <div class="bar" style="width: 10.0%; background-color: #4CAF50;">
+            baseline_mppi: 0.000 m/s
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #2196F3;">
+            baseline_stanley: 0.000 m/s
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #FF9800;">
+            baseline_rpp: 0.000 m/s
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #9C27B0;">
+            baseline_dwb: 0.000 m/s
+        </div>
+
+    </div>
+
+    <div class="chart-container">
+        <h2>✅ 成功率对比</h2>
+
+        <div class="bar" style="width: 10.0%; background-color: #4CAF50;">
+            baseline_mppi: 0.0%
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #2196F3;">
+            baseline_stanley: 0.0%
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #FF9800;">
+            baseline_rpp: 0.0%
+        </div>
+
+        <div class="bar" style="width: 10.0%; background-color: #9C27B0;">
+            baseline_dwb: 0.0%
+        </div>
+
+    </div>
+
+    <div class="summary-box">
+        <h2>📝 各配置详情</h2>
+
+        <h3>baseline_mppi</h3>
+        <p><strong>测试时间:</strong> 2025-12-07 14:32:14</p>
+        <p><strong>参数文件:</strong> N/A</p>
+
+        <h3>baseline_stanley</h3>
+        <p><strong>测试时间:</strong> 2025-12-07 14:43:37</p>
+        <p><strong>参数文件:</strong> N/A</p>
+
+        <h3>baseline_rpp</h3>
+        <p><strong>测试时间:</strong> 2025-12-07 14:22:10</p>
+        <p><strong>参数文件:</strong> N/A</p>
+
+        <h3>baseline_dwb</h3>
+        <p><strong>测试时间:</strong> 2025-12-07 14:11:47</p>
+        <p><strong>参数文件:</strong> N/A</p>
+
+    </div>
+    
+    <footer style="text-align: center; color: #666; margin-top: 40px;">
+        <p>由 Nav2 批量测试系统自动生成</p>
+    </footer>
+</body>
+</html>

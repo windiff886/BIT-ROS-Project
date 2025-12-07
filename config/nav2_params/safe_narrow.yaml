@@ -1,88 +1,97 @@
 # ============================================================
 # 安全狭窄通道配置 (Safe Narrow)
-# 优化狭窄通道通过能力，保持安全性
+# 基于 better_rotation 优化，专为狭窄通道设计
+# 特点：低速，高安全性，适合复杂环境
 # ============================================================
 
 controller_server:
   ros__parameters:
-    # Progress checker - 狭窄区域需要更严格的进度检查
+    # Progress checker - 允许更慢的进度
     progress_checker:
-      required_movement_radius: 0.4
-      movement_time_allowance: 15.0
+      required_movement_radius: 0.3   # 更小的移动要求
+      movement_time_allowance: 15.0   # 更长的允许时间
     
-    # Goal checker - 狭窄区域精确到位
+    # Goal checker - 更宽松的容差
     general_goal_checker:
-      xy_goal_tolerance: 0.20
-      yaw_goal_tolerance: 0.20
+      xy_goal_tolerance: 0.30         # 稍大的容差
+      yaw_goal_tolerance: 0.30
       stateful: True
     
     FollowPath:
-      # 速度限制 - 较低速度以保证安全
+      # 速度限制 - 低速安全
       min_vel_x: 0.0
-      max_vel_x: 0.6
-      max_speed_xy: 0.6
-      min_speed_theta: 0.0
-      max_vel_theta: 0.6
+      max_vel_x: 0.35             # 低速
+      max_speed_xy: 0.35
       
-      # 加速度限制 - 保守
+      # 转向速度 - 保持流畅但安全
+      min_speed_theta: 0.25
+      max_vel_theta: 0.8          # 较慢但稳定的转向
+      
+      # 加速度限制 - 平缓
       acc_lim_x: 1.5
-      decel_lim_x: -2.0
-      acc_lim_theta: 2.0
+      decel_lim_x: -1.5
+      acc_lim_theta: 2.5
       decel_lim_theta: -2.5
       
-      # 轨迹仿真 - 更多采样
-      sim_time: 2.0
-      vx_samples: 30
-      vtheta_samples: 40
+      # 轨迹仿真 - 较长，更谨慎
+      sim_time: 1.5               # 更长的仿真时间
+      vx_samples: 15
+      vtheta_samples: 20
       
-      # 路径跟随权重 - 平衡
-      PathAlign.scale: 35.0
-      PathDist.scale: 35.0
-      GoalAlign.scale: 22.0
-      GoalDist.scale: 22.0
-      BaseObstacle.scale: 0.08
+      # 路径跟随权重 - 高障碍物权重
+      PathAlign.scale: 32.0
+      PathDist.scale: 32.0
+      GoalAlign.scale: 20.0
+      GoalDist.scale: 20.0
+      BaseObstacle.scale: 0.08    # 高障碍物权重，更安全
       
-      # RotateToGoal 参数 - 狭窄区域保守设置
-      RotateToGoal.scale: 35.0
-      RotateToGoal.slowing_factor: 6.0
-      RotateToGoal.lookahead_time: -1.0
+      # RotateToGoal 参数 - 关键：保持优化
+      RotateToGoal.scale: 48.0
+      RotateToGoal.slowing_factor: 4.0  # 更慢的减速
+      RotateToGoal.lookahead_time: 1.0
       
       # 停止速度阈值
-      trans_stopped_velocity: 0.20
-      xy_goal_tolerance: 0.20
+      trans_stopped_velocity: 0.15
+      xy_goal_tolerance: 0.30
+
+behavior_server:
+  ros__parameters:
+    max_rotational_vel: 0.8
+    min_rotational_vel: 0.3
+    rotational_acc_lim: 2.5
 
 global_costmap:
   global_costmap:
     ros__parameters:
-      robot_radius: 0.32
+      robot_radius: 0.3
       inflation_layer:
-        inflation_radius: 0.40
-        cost_scaling_factor: 8.0
+        inflation_radius: 0.45    # 较小的膨胀，允许通过狭窄区域
+        cost_scaling_factor: 2.5  # 较低的衰减，保持警惕
 
 local_costmap:
   local_costmap:
     ros__parameters:
-      robot_radius: 0.32
+      robot_radius: 0.3
       width: 3
       height: 3
       inflation_layer:
-        inflation_radius: 0.38
-        cost_scaling_factor: 8.0
+        inflation_radius: 0.40    # 更小的局部膨胀
+        cost_scaling_factor: 2.5
 
 planner_server:
   ros__parameters:
     GridBased:
-      tolerance: 0.2
+      tolerance: 0.3              # 更小的规划容差
       use_astar: true
 
 velocity_smoother:
   ros__parameters:
-    smoothing_frequency: 25.0
-    scale_velocities: true
+    smoothing_frequency: 20.0
+    scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [0.6, 0.0, 0.6]
-    min_velocity: [-0.6, 0.0, -0.6]
-    max_accel: [1.5, 0.0, 2.0]
-    max_decel: [-2.0, 0.0, -2.5]
+    max_velocity: [0.35, 0.0, 0.8]
+    min_velocity: [-0.35, 0.0, -0.8]
+    max_accel: [1.5, 0.0, 2.5]
+    max_decel: [-1.5, 0.0, -2.5]
     odom_topic: "/odom"
     odom_duration: 0.1

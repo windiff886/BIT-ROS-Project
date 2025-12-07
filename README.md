@@ -1,156 +1,72 @@
-# BIT-ROS-Project
+# 仓库管理员 (Warehouse Runner)
 
-基于 ROS2 和 Nav2 的 TIAGo 机器人导航测试项目。
-
-## 项目结构
-
+## 文件系统概览图（目录树）
 ```
-├── config/                     # 配置文件
-│   ├── nav2_params/           # Nav2 参数配置（多组预设）
-│   │   ├── baseline.yaml      # 基准配置
-│   │   ├── high_speed.yaml    # 高速配置
-│   │   ├── aggressive.yaml    # 激进配置
-│   │   ├── safe_narrow.yaml   # 狭窄通道安全配置
-│   │   └── smooth_path.yaml   # 平滑路径配置
-│   ├── controllers/           # 控制器配置
-│   │   ├── dwb.yaml          # DWB 控制器
-│   │   ├── rpp.yaml          # RPP 控制器
-│   │   └── mppi.yaml         # MPPI 控制器
-│   ├── waypoints.yaml         # 导航点配置
-│   └── my_route.yaml          # 测试路线
-├── map/                        # 地图和启动脚本
-│   ├── batch_nav_test.sh      # 批量测试脚本
-│   ├── launch_tiago_test.sh   # 单次测试脚本
-│   ├── launch_tiago_nav2.sh   # 启动导航
-│   └── nav_maps/              # 地图文件
-├── robot/                      # 机器人描述文件
-├── src/                        # 源代码
-└── test_results/              # 测试结果输出
+BIT-ROS-Project/
+├─ map/                     仿真世界、导航地图、一键脚本、批量测试
+│  ├─ turtlebot4_gz_bringup/worlds/warehouse.sdf
+│  ├─ nav_maps/warehouse.{pgm,yaml}
+│  ├─ launch_tiago*.sh, launch_tiago_nav2.sh, launch_tiago_slam.sh
+│  ├─ launch_tiago_test.sh, batch_nav_test.sh, teleop_ui.py, save_map.sh
+├─ config/                  Nav2 参数与行为树、路径点、RViz 视图
+│  ├─ nav2_params/*.yaml
+│  ├─ behavior_trees/
+│  ├─ waypoints.yaml, my_route.yaml, nav2_tiago.rviz
+├─ src/                     自定义节点与工具脚本
+│  ├─ laser_frame_remapper.py, odom_to_tf.py, follow_waypoints.py
+│  ├─ merge_nav2_params.py, nav_performance_test.py, test_navigation_performance.py
+├─ robot/                   TIAGo/PMB2 模型与官方导航参数
+│  ├─ pal_navigation_cfg_public/.../tiago_nav2.yaml
+│  ├─ tiago_robot/tiago_description/models/{tiago,tiago_no_arm}/
+│  ├─ tiago_simulation/, tiago_navigation/, pmb2_robot/
+├─ report/report.tex        项目报告
+├─ visualize_waypoints.py, waypoints_visualization.png
+├─ build/, install/, log/, test_results/    运行产物
+└─ LICENSE, README.md
 ```
 
-## 快速开始
++ Nav2运行视频：录屏 2025年12月07日 20时12分28秒.webm
++ BT yaml配置文件： config/behavior_trees
++ 斯坦利自定义控制器路径： src/custom_controller
++ 自定义控制器说明文档： 见研习报告
++ 研习报告： report/report.pdf
++ Nav2与控制器批量测试结果路径： test_results
++ 启动Nav2： bash map/launch_tiago_nav2.sh
++ 进行Nav2参数的批量测试： bash map/batch_nav_test.sh
++ 进行多种控制器的批量测试： bash map/batch_nav_test.sh --controllers dwb rpp mppi stanley -- baseline
++ 如何使用自定义BT： 在robot/pal_navigation_cfg_public/pal_navigation_cfg_params/params/tiago_nav2.yaml路径下，将default_bt_xml_filename: "config/behavior_trees/dynamic_multi_controller.xml"解除注释，将default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"注释（83，84行），再直接启动bash map/launch_tiago_nav2.sh即可
 
-### 1. 启动导航仿真
+## map 目录脚本详解
 
-```bash
-# 启动 TIAGo 导航（含 Gazebo 仿真 + Nav2）
-./map/launch_tiago_nav2.sh
-```
+**launch_tiago_nav2.sh（导航一键启动）**
+- 作用：启动 Gazebo + TIAGo + Nav2（载入地图）；可选自动发送 waypoints、RViz、键控 UI。
+- 核心环境变量：`MAP_FILE` 地图 yaml；`NAV2_PARAMS` Nav2 参数；`WORLD_NAME` 世界名；`HEADLESS` 无头；`RUN_RVIZ`；`START_UI`；`RUN_WAYPOINTS`；`WAYPOINT_CFG` 路径点文件；`ARM_TYPE` tiago-arm/no-arm。
+- 用法示例：`HEADLESS=1 RUN_WAYPOINTS=1 WAYPOINT_CFG=config/waypoints.yaml ./map/launch_tiago_nav2.sh`。
 
-### 2. 运行单次导航测试
+**launch_tiago_slam.sh（建图启动）**
+- 作用：启动仿真 + 桥接 + SLAM Toolbox + RViz，用于建图。
+- 环境/参数：位置参数为世界名；`HEADLESS=1` 无头；`USE_LOCAL_INSTALL=1` 使用本地 install 覆盖；`GZ_SOFT_RENDER=1` 软件渲染。
+- 建图完成后执行：`./map/save_map.sh my_map` 生成 pgm/yaml/png/序列化。
 
-```bash
-# 使用默认配置运行测试
-./map/launch_tiago_test.sh
+**launch_tiago.sh（最小仿真）**
+- 作用：仅启动 Gazebo 并生成 TIAGo，可选桥接和键控 UI。
+- 环境：`WORLD_NAME`，`HEADLESS`，`START_BRIDGE`，`START_UI`。
+- 示例：`HEADLESS=1 START_UI=0 ./map/launch_tiago.sh`。
 
-# 指定路线配置
-./map/launch_tiago_test.sh config/my_route.yaml
+**launch_tiago_test.sh（单次导航测试）**
+- 作用：封装一次导航测试，支持参数/控制器多层合并（基线 + 覆盖 + 控制器）。
+- 环境：`WAYPOINT_CFG`，`TEST_NAME`，`MAP_FILE`，`NAV2_PARAMS` 覆盖，`NAV2_CONTROLLER_PARAMS` 控制器覆盖，`HEADLESS`，`RUN_RVIZ`，`AUTO_INIT_POSE`，`INIT_POSE_WAIT`，`WAYPOINT_TIMEOUT`。
+- 流程：合并参数 → 启动仿真/桥接/TF → Nav2 → 自动或手动初始位姿 → 跑 waypoints，日志在 `/tmp/tiago_test_*.log`。
 
-# 指定测试名称
-TEST_NAME=my_test ./map/launch_tiago_test.sh
-```
+**batch_nav_test.sh（批量测试调度）**
+- 作用：遍历参数/控制器组合，循环调用 `launch_tiago_test.sh`，结果写入 `test_results/batch_*/`。
+- 关键参数：`--controllers`/`--controllers-only`（dwb/rpp/mppi）；配置名列表；`HEADLESS`；`RUN_RVIZ`；`WAYPOINT_TIMEOUT`；`PAUSE_BETWEEN`；`SKIP_EXISTING`；`OUTPUT_DIR`。
+- 示例：`HEADLESS=1 RUN_RVIZ=0 ./map/batch_nav_test.sh --controllers dwb rpp mppi -- baseline high_speed`。
 
-## 批量测试
+**save_map.sh（保存建图结果）**
+- 作用：保存 SLAM 地图为 pgm/yaml/png 与 SLAM 序列化文件。
+- 用法：`./map/save_map.sh my_map`（默认保存到 `maps/`）。
 
-批量测试脚本支持同时测试**多组参数配置**和**多种控制器**。
+**其他**
+- `launch_tiago_nav2.sh`、`launch_tiago_test.sh` 内部会启动 `teleop_ui.py`（若 `START_UI=1`），用于键控；`batch_nav_test.sh` 会复用上述脚本并做强力清理。
 
-### 基本用法
-
-```bash
-# 显示帮助
-./map/batch_nav_test.sh --help
-
-# 测试所有预设参数配置（使用默认控制器）
-./map/batch_nav_test.sh
-
-# 只测试指定的参数配置
-./map/batch_nav_test.sh baseline high_speed
-```
-
-### 测试多种控制器
-
-```bash
-# 所有参数配置 × 指定控制器（笛卡尔积测试）
-./map/batch_nav_test.sh --controllers dwb rpp mppi
-
-# 只测试控制器（使用 baseline 参数）
-./map/batch_nav_test.sh --controllers-only dwb rpp mppi
-
-# 指定控制器 × 指定参数配置
-./map/batch_nav_test.sh --controllers dwb rpp -- baseline high_speed
-```
-
-### 可用控制器
-
-| 控制器 | 文件 | 特点 |
-|--------|------|------|
-| **DWB** | `config/controllers/dwb.yaml` | Dynamic Window B，通用、平衡性能和精度 |
-| **RPP** | `config/controllers/rpp.yaml` | Regulated Pure Pursuit，简单、快速、低 CPU 消耗 |
-| **MPPI** | `config/controllers/mppi.yaml` | Model Predictive Path Integral，高精度、复杂环境避障 |
-
-### 环境变量
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `HEADLESS` | `0` | 设为 `1` 启用无头模式（批量测试推荐） |
-| `RUN_RVIZ` | `1` | 设为 `0` 不启动 RViz |
-| `WAYPOINT_TIMEOUT` | `120` | 每个导航点的超时时间（秒） |
-| `PAUSE_BETWEEN` | `10` | 测试间隔时间（秒） |
-| `SKIP_EXISTING` | `0` | 设为 `1` 跳过已存在结果的测试 |
-
-### 批量测试示例
-
-```bash
-# 无头模式批量测试（推荐用于服务器）
-HEADLESS=1 RUN_RVIZ=0 ./map/batch_nav_test.sh --controllers dwb rpp mppi
-
-# 跳过已完成的测试
-SKIP_EXISTING=1 ./map/batch_nav_test.sh --controllers dwb rpp mppi
-
-# 测试结果保存在 test_results/batch_YYYYMMDD_HHMMSS/ 目录
-```
-
-## 参数配置说明
-
-### 预设参数配置 (`config/nav2_params/`)
-
-- **baseline.yaml**: 保守的基准配置，用于对比
-- **high_speed.yaml**: 高速配置，提高最大速度
-- **aggressive.yaml**: 激进配置，更小的安全距离
-- **safe_narrow.yaml**: 适合狭窄通道的安全配置
-- **smooth_path.yaml**: 追求平滑轨迹的配置
-
-### 创建自定义配置
-
-1. 复制现有配置文件：
-   ```bash
-   cp config/nav2_params/baseline.yaml config/nav2_params/my_config.yaml
-   ```
-
-2. 修改参数（只需包含要修改的参数，会自动与基础配置合并）
-
-3. 运行测试：
-   ```bash
-   ./map/batch_nav_test.sh my_config
-   ```
-
-## 测试结果
-
-测试结果保存在 `test_results/` 目录：
-
-```
-test_results/
-└── batch_20251205_143000/
-    ├── batch_summary.yaml          # 批量测试摘要
-    ├── nav_test_baseline_dwb.yaml  # 各测试详细结果
-    ├── nav_test_baseline_rpp.yaml
-    ├── nav_test_baseline_mppi.yaml
-    └── ...
-```
-
-## 依赖
-
-- ROS2 Humble
-- Nav2
-- Gazebo (Ignition)
-- TIAGo 机器人仿真包

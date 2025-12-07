@@ -1,0 +1,185 @@
+test_info:
+  name: safe_narrow
+  start_time: '2025-12-05 13:37:55'
+  end_time: '2025-12-05 13:50:48'
+  config_file: /home/windiff/Code/BIT-ROS-Project/config/my_route.yaml
+summary:
+  total_waypoints: 12
+  successful: 11
+  failed: 1
+  success_rate_percent: 91.7
+  total_time_seconds: 742.12
+  total_distance_meters: 203.99
+  avg_velocity_mps: 0.275
+  avg_position_error_meters: 0.2867
+  max_position_error_meters: 0.5359
+  avg_yaw_error_degrees: 20.74
+waypoint_results:
+- name: point_1
+  success: true
+  target:
+    x: -8.208
+    y: 5.542
+    yaw_deg: 115.2
+  final:
+    x: -7.97
+    y: 5.468
+    yaw_deg: 135.7
+  time_seconds: 31.22
+  distance_meters: 9.52
+  position_error_meters: 0.2497
+  yaw_error_degrees: 20.48
+- name: point_2
+  success: true
+  target:
+    x: 11.049
+    y: 17.055
+    yaw_deg: 73.6
+  final:
+    x: 10.794
+    y: 16.972
+    yaw_deg: 48.6
+  time_seconds: 71.37
+  distance_meters: 23.67
+  position_error_meters: 0.2682
+  yaw_error_degrees: 25.04
+- name: point_3
+  success: true
+  target:
+    x: -12.117
+    y: 22.803
+    yaw_deg: -107.9
+  final:
+    x: -11.936
+    y: 22.919
+    yaw_deg: -123.6
+  time_seconds: 83.43
+  distance_meters: 27.89
+  position_error_meters: 0.2145
+  yaw_error_degrees: 15.75
+- name: point_4
+  success: true
+  target:
+    x: -12.932
+    y: 8.443
+    yaw_deg: 69.3
+  final:
+    x: -12.886
+    y: 8.696
+    yaw_deg: 45.9
+  time_seconds: 46.31
+  distance_meters: 14.19
+  position_error_meters: 0.2569
+  yaw_error_degrees: 23.41
+- name: point_5
+  success: false
+  target:
+    x: 13.021
+    y: 14.159
+    yaw_deg: -74.1
+  final:
+    x: 0.0
+    y: 0.0
+    yaw_deg: 0.0
+  time_seconds: 120.0
+  distance_meters: 40.9
+  position_error_meters: 0.0
+  yaw_error_degrees: 0.0
+- name: point_6
+  success: true
+  target:
+    x: 5.248
+    y: 3.478
+    yaw_deg: -47.1
+  final:
+    x: 5.347
+    y: 3.561
+    yaw_deg: -68.0
+  time_seconds: 59.77
+  distance_meters: 19.68
+  position_error_meters: 0.129
+  yaw_error_degrees: 20.94
+- name: point_7
+  success: true
+  target:
+    x: 8.408
+    y: -23.353
+    yaw_deg: -163.5
+  final:
+    x: 8.415
+    y: -23.097
+    yaw_deg: -138.6
+  time_seconds: 82.91
+  distance_meters: 27.23
+  position_error_meters: 0.2562
+  yaw_error_degrees: 24.94
+- name: point_8
+  success: true
+  target:
+    x: 2.194
+    y: -5.638
+    yaw_deg: 84.6
+  final:
+    x: 2.317
+    y: -6.003
+    yaw_deg: 109.9
+  time_seconds: 62.47
+  distance_meters: 20.76
+  position_error_meters: 0.3852
+  yaw_error_degrees: 25.27
+- name: point_9
+  success: true
+  target:
+    x: -4.449
+    y: -3.983
+    yaw_deg: -132.6
+  final:
+    x: -4.199
+    y: -3.8
+    yaw_deg: -150.6
+  time_seconds: 22.87
+  distance_meters: 7.56
+  position_error_meters: 0.3098
+  yaw_error_degrees: 17.99
+- name: point_10
+  success: true
+  target:
+    x: -9.095
+    y: -23.586
+    yaw_deg: -160.6
+  final:
+    x: -8.8
+    y: -23.434
+    yaw_deg: -152.4
+  time_seconds: 62.17
+  distance_meters: 20.79
+  position_error_meters: 0.3317
+  yaw_error_degrees: 8.21
+- name: point_11
+  success: true
+  target:
+    x: -12.114
+    y: -3.401
+    yaw_deg: 38.9
+  final:
+    x: -11.972
+    y: -3.564
+    yaw_deg: 62.7
+  time_seconds: 64.42
+  distance_meters: 20.92
+  position_error_meters: 0.2163
+  yaw_error_degrees: 23.84
+- name: point_12
+  success: true
+  target:
+    x: -0.856
+    y: 0.855
+    yaw_deg: 12.0
+  final:
+    x: -1.295
+    y: 0.547
+    yaw_deg: 34.3
+  time_seconds: 35.16
+  distance_meters: 11.76
+  position_error_meters: 0.5359
+  yaw_error_degrees: 22.27

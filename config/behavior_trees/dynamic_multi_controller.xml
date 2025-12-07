@@ -1,0 +1,55 @@
+<!--
+  动态控制器切换行为树：至少三种控制器，按阶段切换
+  - 阶段1：快速接近，使用 FollowPath（DWB 快速）
+  - 阶段2：慢速精调，使用 SlowFollowPath（DWB 慢速）
+  - 阶段3：精确对齐，使用 StanleyFollowPath（自定义 Stanley）
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="MultiControllerNav">
+
+      <!-- 阶段1：快速接近，使用 FollowPath -->
+      <SetBlackboard output_key="controller_id" value="FollowPath"/>
+      <Fallback name="PlanFast">
+        <ComputePathToPose goal="{goal}" path="{fast_path}" planner_id="GridBased"/>
+        <Sequence>
+          <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+          <Wait wait_duration="0.5"/>
+          <ComputePathToPose goal="{goal}" path="{fast_path}" planner_id="GridBased"/>
+        </Sequence>
+      </Fallback>
+      <Fallback name="FollowFast">
+        <FollowPath path="{fast_path}" controller_id="{controller_id}"/>
+        <Sequence>
+          <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+          <Wait wait_duration="0.5"/>
+          <FollowPath path="{fast_path}" controller_id="{controller_id}"/>
+        </Sequence>
+      </Fallback>
+
+      <!-- 阶段2：慢速精调，切换到 SlowFollowPath -->
+      <SetBlackboard output_key="controller_id" value="SlowFollowPath"/>
+      <Wait wait_duration="0.3"/>
+      <ComputePathToPose goal="{goal}" path="{slow_path}" planner_id="GridBased"/>
+      <SpeedController min_rate="0.1" max_rate="0.3" filter_duration="0.5">
+        <FollowPath path="{slow_path}" controller_id="{controller_id}"/>
+      </SpeedController>
+
+      <!-- 阶段3：最终对齐，切换到 StanleyFollowPath -->
+      <SetBlackboard output_key="controller_id" value="StanleyFollowPath"/>
+      <Wait wait_duration="0.3"/>
+      <Fallback name="FinalAdjust">
+        <GoalReached/>
+        <Sequence>
+          <BackUp backup_dist="0.12" backup_speed="0.03" time_allowance="6.0"/>
+          <Wait wait_duration="0.3"/>
+          <ComputePathToPose goal="{goal}" path="{final_path}" planner_id="GridBased"/>
+          <SpeedController min_rate="0.05" max_rate="0.15" filter_duration="0.3">
+            <FollowPath path="{final_path}" controller_id="{controller_id}"/>
+          </SpeedController>
+        </Sequence>
+      </Fallback>
+
+    </Sequence>
+  </BehaviorTree>
+</root>

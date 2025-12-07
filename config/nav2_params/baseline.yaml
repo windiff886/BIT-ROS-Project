@@ -1,6 +1,7 @@
 # ============================================================
 # 基准配置 (Baseline)
-# 默认的保守参数，用于对比
+# 基于 better_rotation 优化，保守稳定的默认配置
+# 特点：中等速度，平衡的安全性和效率
 # ============================================================
 
 controller_server:
@@ -17,46 +18,54 @@ controller_server:
       stateful: True
     
     FollowPath:
-      # 速度限制 - 保守设置
+      # 速度限制 - 中等速度
       min_vel_x: 0.0
-      max_vel_x: 0.8
-      max_speed_xy: 0.8
-      min_speed_theta: 0.0
-      max_vel_theta: 0.8
+      max_vel_x: 0.5              # 基准速度
+      max_speed_xy: 0.5
       
-      # 加速度限制 - 保守设置
+      # 转向速度 - 保持优化后的参数
+      min_speed_theta: 0.3
+      max_vel_theta: 1.0          # 稍慢的转向
+      
+      # 加速度限制 - 中等
       acc_lim_x: 2.0
       decel_lim_x: -2.0
-      acc_lim_theta: 2.5
-      decel_lim_theta: -2.5
+      acc_lim_theta: 3.2
+      decel_lim_theta: -3.2
       
       # 轨迹仿真
-      sim_time: 1.5
+      sim_time: 1.2               # 中等仿真时间
       vx_samples: 15
-      vtheta_samples: 15
+      vtheta_samples: 20
       
-      # 路径跟随权重
+      # 路径跟随权重 - 平衡设置
       PathAlign.scale: 32.0
       PathDist.scale: 32.0
       GoalAlign.scale: 24.0
       GoalDist.scale: 24.0
-      BaseObstacle.scale: 0.05
+      BaseObstacle.scale: 0.03    # 稍高的障碍物权重
       
-      # RotateToGoal 参数
-      RotateToGoal.scale: 32.0
-      RotateToGoal.slowing_factor: 5.0
-      RotateToGoal.lookahead_time: -1.0
+      # RotateToGoal 参数 - 关键：保持优化
+      RotateToGoal.scale: 48.0
+      RotateToGoal.slowing_factor: 3.0
+      RotateToGoal.lookahead_time: 1.0
       
       # 停止速度阈值
-      trans_stopped_velocity: 0.25
+      trans_stopped_velocity: 0.2
       xy_goal_tolerance: 0.25
+
+behavior_server:
+  ros__parameters:
+    max_rotational_vel: 1.0
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 3.2
 
 global_costmap:
   global_costmap:
     ros__parameters:
       robot_radius: 0.3
       inflation_layer:
-        inflation_radius: 0.60
+        inflation_radius: 0.55
         cost_scaling_factor: 3.0
 
 local_costmap:
@@ -66,23 +75,23 @@ local_costmap:
       width: 3
       height: 3
       inflation_layer:
-        inflation_radius: 0.60
+        inflation_radius: 0.55
         cost_scaling_factor: 3.0
 
 planner_server:
   ros__parameters:
     GridBased:
       tolerance: 0.5
-      use_astar: false
+      use_astar: true
 
 velocity_smoother:
   ros__parameters:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [0.8, 0.0, 0.8]
-    min_velocity: [-0.8, 0.0, -0.8]
-    max_accel: [2.0, 0.0, 2.5]
-    max_decel: [-2.0, 0.0, -2.5]
+    max_velocity: [0.5, 0.0, 1.0]
+    min_velocity: [-0.5, 0.0, -1.0]
+    max_accel: [2.0, 0.0, 3.2]
+    max_decel: [-2.0, 0.0, -3.2]
     odom_topic: "/odom"
     odom_duration: 0.1

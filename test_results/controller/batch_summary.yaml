@@ -1,0 +1,53 @@
+# Nav2 批量测试摘要
+batch_id: "batch_20251207_141119"
+start_time: "2025-12-07T14:11:19+08:00"
+total_tests: 4
+configs_count: 1
+controllers_count: 4
+config_names:
+  - baseline
+controller_names:
+  - dwb
+  - rpp
+  - mppi
+  - stanley
+results:
+  - name: baseline_dwb
+    config: baseline
+    controller: dwb
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/baseline.yaml
+    controller_file: /home/windiff/Code/BIT-ROS-Project/config/controllers/dwb.yaml
+    duration_seconds: 615
+    status: completed
+    exit_code: 0
+  - name: baseline_rpp
+    config: baseline
+    controller: rpp
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/baseline.yaml
+    controller_file: /home/windiff/Code/BIT-ROS-Project/config/controllers/rpp.yaml
+    duration_seconds: 596
+    status: completed
+    exit_code: 0
+  - name: baseline_mppi
+    config: baseline
+    controller: mppi
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/baseline.yaml
+    controller_file: /home/windiff/Code/BIT-ROS-Project/config/controllers/mppi.yaml
+    duration_seconds: 675
+    status: completed
+    exit_code: 0
+  - name: baseline_stanley
+    config: baseline
+    controller: stanley
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/baseline.yaml
+    controller_file: /home/windiff/Code/BIT-ROS-Project/config/controllers/stanley.yaml
+    duration_seconds: 1253
+    status: completed
+    exit_code: 0
+
+end_time: "2025-12-07T15:04:05+08:00"
+summary:
+  passed: 4
+  failed: 0
+  skipped: 0
+  total: 4

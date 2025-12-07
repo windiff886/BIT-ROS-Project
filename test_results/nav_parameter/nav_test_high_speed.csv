@@ -1,0 +1,13 @@
+waypoint,success,time_s,distance_m,pos_error_m,yaw_error_deg
+point_1,True,24.47,10.07,0.0591,23.55
+point_2,False,42.04,10.07,0.0000,0.00
+point_3,False,30.99,0.60,0.0000,0.00
+point_4,False,21.99,0.30,0.0000,0.00
+point_5,False,31.00,0.61,0.0000,0.00
+point_6,False,21.99,0.30,0.0000,0.00
+point_7,False,30.99,0.60,0.0000,0.00
+point_8,False,21.99,0.30,0.0000,0.00
+point_9,False,30.99,0.61,0.0000,0.00
+point_10,False,21.99,0.30,0.0000,0.00
+point_11,False,31.00,0.61,0.0000,0.00
+point_12,False,21.99,0.31,0.0000,0.00

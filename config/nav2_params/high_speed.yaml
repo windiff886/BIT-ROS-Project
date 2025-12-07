@@ -1,78 +1,87 @@
 # ============================================================
 # 高速配置 (High Speed)
-# 优化速度，适合开阔区域
+# 基于 better_rotation 优化，追求更快的导航速度
+# 特点：高速度，快速转向，适合开阔环境
 # ============================================================
 
 controller_server:
   ros__parameters:
-    # Progress checker - 高速需要更宽松的进度检查
+    # Progress checker
     progress_checker:
-      required_movement_radius: 0.3
-      movement_time_allowance: 12.0
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
     
-    # Goal checker - 高速时放宽容差
+    # Goal checker
     general_goal_checker:
-      xy_goal_tolerance: 0.30
-      yaw_goal_tolerance: 0.35
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
       stateful: True
     
     FollowPath:
-      # 速度限制 - 高速设置
+      # 速度限制 - 高速
       min_vel_x: 0.0
-      max_vel_x: 1.5
-      max_speed_xy: 1.5
-      min_speed_theta: 0.0
-      max_vel_theta: 1.5
+      max_vel_x: 0.8              # 更高的速度
+      max_speed_xy: 0.8
       
-      # 加速度限制 - 激进设置
-      acc_lim_x: 3.5
-      decel_lim_x: -3.5
-      acc_lim_theta: 4.5
-      decel_lim_theta: -4.5
+      # 转向速度 - 快速转向
+      min_speed_theta: 0.3
+      max_vel_theta: 1.5          # 更快的转向
       
-      # 轨迹仿真 - 更长的预测
-      sim_time: 2.5
-      vx_samples: 30
-      vtheta_samples: 30
+      # 加速度限制 - 较高
+      acc_lim_x: 2.5
+      decel_lim_x: -2.5
+      acc_lim_theta: 4.0
+      decel_lim_theta: -4.0
       
-      # 路径跟随权重 - 偏向速度
-      PathAlign.scale: 28.0
-      PathDist.scale: 28.0
-      GoalAlign.scale: 26.0
-      GoalDist.scale: 26.0
-      BaseObstacle.scale: 0.02
+      # 轨迹仿真 - 较短，响应快
+      sim_time: 0.8               # 短仿真时间，快速响应
+      vx_samples: 20
+      vtheta_samples: 25
       
-      # RotateToGoal 参数 - 高速时降低 slowing_factor
-      RotateToGoal.scale: 28.0
-      RotateToGoal.slowing_factor: 3.0
-      RotateToGoal.lookahead_time: -1.0
+      # 路径跟随权重
+      PathAlign.scale: 32.0
+      PathDist.scale: 32.0
+      GoalAlign.scale: 28.0       # 更高的目标对齐权重
+      GoalDist.scale: 28.0
+      BaseObstacle.scale: 0.02    # 较低的障碍物权重
       
-      # 停止速度阈值 - 高速时放宽
-      trans_stopped_velocity: 0.30
-      xy_goal_tolerance: 0.30
+      # RotateToGoal 参数 - 关键：保持优化
+      RotateToGoal.scale: 48.0
+      RotateToGoal.slowing_factor: 2.5  # 更快的转向
+      RotateToGoal.lookahead_time: 1.0
+      
+      # 停止速度阈值
+      trans_stopped_velocity: 0.2
+      xy_goal_tolerance: 0.25
+
+behavior_server:
+  ros__parameters:
+    max_rotational_vel: 1.5
+    min_rotational_vel: 0.4
+    rotational_acc_lim: 4.0
 
 global_costmap:
   global_costmap:
     ros__parameters:
       robot_radius: 0.3
       inflation_layer:
-        inflation_radius: 0.45
-        cost_scaling_factor: 5.0
+        inflation_radius: 0.50    # 较小的膨胀，允许更激进的路径
+        cost_scaling_factor: 3.5
 
 local_costmap:
   local_costmap:
     ros__parameters:
       robot_radius: 0.3
-      width: 5
-      height: 5
+      width: 4                    # 更大的局部地图
+      height: 4
       inflation_layer:
-        inflation_radius: 0.40
-        cost_scaling_factor: 5.0
+        inflation_radius: 0.45
+        cost_scaling_factor: 4.0
 
 planner_server:
   ros__parameters:
     GridBased:
-      tolerance: 0.25
+      tolerance: 0.5
       use_astar: true
 
 velocity_smoother:
@@ -80,9 +89,9 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [1.5, 0.0, 1.5]
-    min_velocity: [-1.5, 0.0, -1.5]
-    max_accel: [3.5, 0.0, 4.5]
-    max_decel: [-3.5, 0.0, -4.5]
+    max_velocity: [0.8, 0.0, 1.5]
+    min_velocity: [-0.8, 0.0, -1.5]
+    max_accel: [2.5, 0.0, 4.0]
+    max_decel: [-2.5, 0.0, -4.0]
     odom_topic: "/odom"
     odom_duration: 0.1

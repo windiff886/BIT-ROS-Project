@@ -1,0 +1,98 @@
+# ============================================================
+# 优化转向配置 (Better Rotation)
+# 针对转向行为进行优化，使其更像手动操控
+# ============================================================
+
+controller_server:
+  ros__parameters:
+    # Progress checker
+    progress_checker:
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+    
+    # Goal checker
+    general_goal_checker:
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+      stateful: True
+    
+    FollowPath:
+      # 速度限制
+      min_vel_x: 0.0
+      max_vel_x: 0.6
+      max_speed_xy: 0.6
+      
+      # 转向速度 - 提高最小值使转向更果断
+      min_speed_theta: 0.3      # 增加最小转向速度，避免缓慢转向
+      max_vel_theta: 1.2        # 允许更快转向
+      
+      # 加速度限制
+      acc_lim_x: 2.0
+      decel_lim_x: -2.0
+      acc_lim_theta: 3.5        # 提高角加速度，更快响应
+      decel_lim_theta: -3.5
+      
+      # 轨迹仿真 - 减少仿真时间让控制更直接
+      sim_time: 1.0             # 减少仿真时间
+      vx_samples: 15
+      vtheta_samples: 25        # 增加角速度采样，更细腻的转向选择
+      
+      # 路径跟随权重
+      PathAlign.scale: 32.0
+      PathDist.scale: 32.0
+      GoalAlign.scale: 24.0
+      GoalDist.scale: 24.0
+      BaseObstacle.scale: 0.02
+      
+      # RotateToGoal 参数 - 关键改进
+      RotateToGoal.scale: 48.0          # 提高权重，更倾向于转向目标
+      RotateToGoal.slowing_factor: 3.0  # 减少减速因子，转向更流畅
+      RotateToGoal.lookahead_time: 1.0  # 启用提前转向（原来是 -1.0 禁用）
+      
+      # 停止速度阈值
+      trans_stopped_velocity: 0.2       # 稍微降低，更容易判定为停止
+      xy_goal_tolerance: 0.25
+
+# 行为服务器 - 优化原地转向行为
+behavior_server:
+  ros__parameters:
+    # 原地转向参数
+    max_rotational_vel: 1.2     # 最大转向速度
+    min_rotational_vel: 0.4     # 最小转向速度
+    rotational_acc_lim: 3.5     # 转向加速度
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      robot_radius: 0.3
+      inflation_layer:
+        inflation_radius: 0.55
+        cost_scaling_factor: 3.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      robot_radius: 0.3
+      width: 3
+      height: 3
+      inflation_layer:
+        inflation_radius: 0.50
+        cost_scaling_factor: 3.5
+
+planner_server:
+  ros__parameters:
+    GridBased:
+      tolerance: 0.5
+      use_astar: true
+
+velocity_smoother:
+  ros__parameters:
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: "OPEN_LOOP"
+    max_velocity: [0.6, 0.0, 1.2]
+    min_velocity: [-0.6, 0.0, -1.2]
+    max_accel: [2.0, 0.0, 3.5]
+    max_decel: [-2.0, 0.0, -3.5]
+    odom_topic: "/odom"
+    odom_duration: 0.1

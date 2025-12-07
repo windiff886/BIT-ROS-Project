@@ -1,0 +1,15 @@
+controller_server:
+  ros__parameters:
+    controller_plugins: ["StanleyFollowPath"]
+    StanleyFollowPath:
+      plugin: "custom_controller::StanleyController"
+      k_gain: 1.8
+      softening_speed: 0.1
+      max_steer_rad: 0.7
+      max_angular_speed: 1.0
+      min_linear_speed: 0.05
+      max_linear_speed: 0.35
+      slow_down_gain: 2.5
+      lookahead_dist: 0.7
+      goal_tolerance_lin: 0.05
+      goal_tolerance_yaw: 0.08

@@ -1,0 +1,65 @@
+# Nav2 批量测试摘要
+batch_id: "batch_20251205_125821"
+start_time: "2025-12-05T12:58:21+08:00"
+total_tests: 6
+configs_count: 6
+controllers_count: 1
+config_names:
+  - aggressive
+  - baseline
+  - better_rotation
+  - high_speed
+  - safe_narrow
+  - smooth_path
+controller_names:
+  - default
+results:
+  - name: aggressive
+    config: aggressive
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/aggressive.yaml
+    duration_seconds: 617
+    status: completed
+    exit_code: 0
+  - name: baseline
+    config: baseline
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/baseline.yaml
+    duration_seconds: 614
+    status: completed
+    exit_code: 0
+  - name: better_rotation
+    config: better_rotation
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/better_rotation.yaml
+    duration_seconds: 628
+    status: completed
+    exit_code: 0
+  - name: high_speed
+    config: high_speed
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/high_speed.yaml
+    duration_seconds: 430
+    status: completed
+    exit_code: 0
+  - name: safe_narrow
+    config: safe_narrow
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/safe_narrow.yaml
+    duration_seconds: 811
+    status: completed
+    exit_code: 0
+  - name: smooth_path
+    config: smooth_path
+    controller: default
+    param_file: /home/windiff/Code/BIT-ROS-Project/config/nav2_params/smooth_path.yaml
+    duration_seconds: 638
+    status: completed
+    exit_code: 0
+
+end_time: "2025-12-05T14:01:47+08:00"
+summary:
+  passed: 6
+  failed: 0
+  skipped: 0
+  total: 6

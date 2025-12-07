@@ -1,0 +1,47 @@
+<!--
+  Node model definitions for Groot to parse Nav2 BT nodes used in precise docking trees.
+  Load this in Groot: File -> Load Node Models (XML) -> select this file.
+-->
+<root>
+  <TreeNodesModel>
+    <!-- Actions -->
+    <Action ID="ComputePathToPose">
+      <input_port name="goal"/>
+      <output_port name="path"/>
+      <input_port name="planner_id"/>
+    </Action>
+    <Action ID="FollowPath">
+      <input_port name="path"/>
+      <input_port name="controller_id"/>
+    </Action>
+    <Action ID="BackUp">
+      <input_port name="backup_dist"/>
+      <input_port name="backup_speed"/>
+      <input_port name="time_allowance"/>
+    </Action>
+    <Action ID="ClearEntireCostmap">
+      <input_port name="service_name"/>
+    </Action>
+    <Action ID="TruncatePath">
+      <input_port name="input_path"/>
+      <output_port name="output_path"/>
+      <input_port name="distance"/>
+    </Action>
+    <Action ID="Wait">
+      <input_port name="wait_duration"/>
+    </Action>
+
+    <!-- Conditions -->
+    <Condition ID="GoalReached"/>
+
+    <!-- Decorators -->
+    <Decorator ID="RateController">
+      <input_port name="hz"/>
+    </Decorator>
+    <Decorator ID="SpeedController">
+      <input_port name="min_rate"/>
+      <input_port name="max_rate"/>
+      <input_port name="filter_duration"/>
+    </Decorator>
+  </TreeNodesModel>
+</root>

@@ -75,13 +75,16 @@ class TestReport:
 
 
 class NavPerformanceTester(Node):
-    def __init__(self, config_file: str, output_dir: str, test_name: str = '', waypoint_timeout: float = 120.0):
+    def __init__(self, config_file: str, output_dir: str, test_name: str = '', waypoint_timeout: float = 120.0,
+                 recovery_enabled: bool = True, recovery_wait: float = 3.0):
         super().__init__('nav_performance_tester')
         
         self.config_file = config_file
         self.output_dir = output_dir
         self.test_name = test_name or datetime.now().strftime('%Y%m%d_%H%M%S')
         self.waypoint_timeout = waypoint_timeout  # 每个 waypoint 的超时时间
+        self.recovery_enabled = recovery_enabled  # 是否启用失败恢复
+        self.recovery_wait = recovery_wait  # 失败后等待时间
         
         self.report = TestReport(
             test_name=self.test_name,
@@ -114,15 +117,24 @@ class NavPerformanceTester(Node):
         # Marker 发布
         self.marker_pub = self.create_publisher(MarkerArray, '/waypoint_markers', 10)
         
+        # 初始位姿发布（用于恢复）
+        self.initial_pose_pub = self.create_publisher(
+            PoseWithCovarianceStamped, '/initialpose', 10)
+        
         # 加载 waypoints
         self.waypoints = self.load_waypoints()
         self.frame_id = 'map'
+        
+        # 连续失败计数
+        self.consecutive_failures = 0
+        self.max_consecutive_failures = 3
         
         self.get_logger().info('=' * 60)
         self.get_logger().info('Nav2 性能测试器已启动')
         self.get_logger().info(f'测试名称: {self.test_name}')
         self.get_logger().info(f'Waypoints: {len(self.waypoints)} 个')
         self.get_logger().info(f'每个 Waypoint 超时: {self.waypoint_timeout}s')
+        self.get_logger().info(f'失败恢复: {"启用" if self.recovery_enabled else "禁用"}')
         self.get_logger().info('=' * 60)
 
     def load_waypoints(self) -> list:
@@ -155,6 +167,31 @@ class NavPerformanceTester(Node):
 
     def amcl_callback(self, msg: PoseWithCovarianceStamped):
         self.current_pose = msg.pose.pose
+
+    def republish_pose(self):
+        """重新发布当前位姿以帮助 AMCL 恢复定位"""
+        if self.current_pose is None and self.current_odom is None:
+            self.get_logger().warn('  无法获取当前位姿用于恢复')
+            return
+        
+        pose = self.current_pose or self.current_odom
+        
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = 'map'
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.pose.pose = pose
+        # 设置较大的协方差，让 AMCL 有更大的粒子分布
+        msg.pose.covariance = [
+            0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.15
+        ]
+        
+        self.initial_pose_pub.publish(msg)
+        self.get_logger().info('  已发布当前位姿以帮助 AMCL 恢复定位')
 
     def get_yaw(self, orientation) -> float:
         qx, qy, qz, qw = orientation.x, orientation.y, orientation.z, orientation.w
@@ -320,6 +357,24 @@ class NavPerformanceTester(Node):
         
         self.marker_pub.publish(marker_array)
 
+    def wait_for_localization(self, timeout: float = 10.0) -> bool:
+        """等待 AMCL 定位稳定"""
+        self.get_logger().info('等待 AMCL 定位稳定...')
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            rclpy.spin_once(self, timeout_sec=0.5)
+            
+            if self.current_pose is not None:
+                self.get_logger().info(
+                    f'AMCL 定位已就绪: x={self.current_pose.position.x:.2f}, '
+                    f'y={self.current_pose.position.y:.2f}'
+                )
+                return True
+        
+        self.get_logger().warn('等待 AMCL 定位超时，使用里程计位置')
+        return False
+
     def run_test(self):
         """运行完整测试"""
         self.report.start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -328,6 +383,9 @@ class NavPerformanceTester(Node):
         # 发布标记
         self.publish_markers()
         time.sleep(1)
+        
+        # 等待 AMCL 定位稳定
+        self.wait_for_localization(timeout=15.0)
         
         self.get_logger().info('')
         self.get_logger().info('开始导航性能测试...')
@@ -339,8 +397,18 @@ class NavPerformanceTester(Node):
             
             if result.success:
                 self.report.successful += 1
+                self.consecutive_failures = 0  # 重置连续失败计数
             else:
                 self.report.failed += 1
+                self.consecutive_failures += 1
+                
+                # 失败恢复机制：每次失败后都重新发布位姿
+                if self.recovery_enabled:
+                    self.get_logger().warn(f'  导航失败 (连续失败: {self.consecutive_failures})')
+                    self.get_logger().info(f'  重新发布位姿帮助 AMCL 重新定位...')
+                    self.republish_pose()
+                    self.get_logger().info(f'  等待 {self.recovery_wait}s 让定位收敛...')
+                    time.sleep(self.recovery_wait)
             
             # 短暂停顿
             time.sleep(1.0)
@@ -465,11 +533,22 @@ def main():
     parser.add_argument('-n', '--name', default='', help='测试名称')
     parser.add_argument('-t', '--timeout', type=float, default=120.0, 
                         help='每个 waypoint 的超时时间（秒），默认 120')
+    parser.add_argument('--no-recovery', action='store_true',
+                        help='禁用失败恢复机制')
+    parser.add_argument('--recovery-wait', type=float, default=3.0,
+                        help='失败后等待时间（秒），默认 3')
     
     args = parser.parse_args()
     
     rclpy.init()
-    tester = NavPerformanceTester(args.config, args.output, args.name, args.timeout)
+    tester = NavPerformanceTester(
+        args.config, 
+        args.output, 
+        args.name, 
+        args.timeout,
+        recovery_enabled=not args.no_recovery,
+        recovery_wait=args.recovery_wait
+    )
     
     try:
         tester.run_test()
